@@ -1,0 +1,121 @@
+---
+title: Couch to 5K
+parent: Services
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+Couch to 5K is the Better Health running coach app.
+
+The app follows the [standard pattern](documentation/guides/standard-pattern) but also has a BuddyRun feature which runs in a separate ECS container and uses Redis. This uses WebSockets through the ALB instead of HTTP.
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TD;
+    User[Mobile App]
+    CloudFront[CloudFront CDN]
+    MediaS3[S3 Media Bucket]
+    ALB[Application Load Balancer]
+    CMS[ECS Fargate - Django API]
+    BuddyRun[ECS Fargate]
+    Redis[BuddyRun Redis]
+    RDS[Aurora PostgreSQL]
+
+    User --> CloudFront --> MediaS3
+    CMS --> MediaS3
+    User --> ALB --> CMS --> RDS
+    CMS --> Secrets
+    User --> ALB --> BuddyRun
+    BuddyRun --> Redis
+```
+
+---
+
+## Components
+
+### Applications
+
+- CMS – https://github.com/ukhsa-collaboration/couch25k_cloudformation_iaas
+- BuddyRun - https://github.com/ukhsa-collaboration/couch-to-5k-buddy-run
+
+### Infrastructure as Code (IaC)
+
+- **Repo:** [c25k-iac](https://github.com/ukhsa-collaboration/c25k-iac) – Terraform defining the AWS infrastructure.
+
+---
+
+## Environments
+
+| Environment | URL | 
+|-------------|-----|
+| **Production** | https://couchto5kprod.phedigital.co.uk | 
+| **Staging** | https://couchto5kstg.phedigital.co.uk | 
+| **Dev** | https://couchto5kdev.phedigital.co.uk | 
+
+---
+
+## DNS Overview
+
+The `phedigital.co.uk` apex lives in the phe-prd account. That zone delegates `couchto5kprod.phedigital.co.uk`, `couchto5kstg.phedigital.co.uk` and `couchto5kdev.phedigital.co.uk` to the respective landing-zone accounts, where Terraform manages the ALB aliases and CDN records. Each environment also hosts a `cdn.phedigital<env>.co.uk` record that aliases the CloudFront distribution in us-east-1.
+
+The subdomains for Buddyrun are `couch25k.buddyrun.<env>.phedigital.co.uk`. This might imply that other applications also have a Buddyrun but they do not.
+
+Subdomains in use:
+
+- couchto5kprod.phedigital.co.uk – Production API / CMS ALB.
+- couchto5kstg.phedigital.co.uk – Staging API / CMS ALB.
+- couchto5kdev.phedigital.co.uk – Development API / CMS ALB.
+- cdn.couchto5kprod.phedigital.co.uk – Production CloudFront distribution (audio/media).
+- cdn.couchto5kstg.phedigital.co.uk – Staging CloudFront distribution.
+- cdn.couchto5kdev.phedigital.co.uk – Development CloudFront distribution.
+- couch25k.buddyrun.prod.phedigital.co.uk - Prod Buddyrun ALB
+- couch25k.buddyrun.stg.phedigital.co.uk - Staging Buddyrun ALB
+- couch25k.buddyrun.dev.phedigital.co.uk - Development Buddyrun ALB
+
+
+```mermaid
+graph TD
+  subgraph PHE_PRD[phedigital.co.uk – phe-prd account]
+    PHE[phedigital.co.uk Root Zone]
+  end
+
+  subgraph DEV_ACC[dev account]
+    DEV_ZONE[couchto5kdev.phedigital.co.uk]
+    DEV_CDN[cdn.couchto5kdev.phedigital.co.uk]
+    ALB_DEV[Application Load Balancer - dev]
+    CF_DEV[CloudFront - dev]
+  end
+
+  subgraph STG_ACC[stg account]
+    STG_ZONE[couchto5kstg.phedigital.co.uk]
+    STG_CDN[cdn.couchto5kstg.phedigital.co.uk]
+    ALB_STG[Application Load Balancer - stg]
+    CF_STG[CloudFront - stg]
+  end
+
+  subgraph PRD_ACC[prd account]
+    PRD_ZONE[couchto5kprod.phedigital.co.uk]
+    PRD_CDN[cdn.couchto5kprod.phedigital.co.uk]
+    ALB_PRD[Application Load Balancer - prod]
+    CF_PRD[CloudFront - prod]
+  end
+
+  PHE -->|NS| DEV_ZONE
+  PHE -->|NS| STG_ZONE
+  PHE -->|NS| PRD_ZONE
+
+  DEV_ZONE -->|ALIAS| ALB_DEV
+  STG_ZONE -->|ALIAS| ALB_STG
+  PRD_ZONE -->|ALIAS| ALB_PRD
+
+  DEV_CDN -->|ALIAS| CF_DEV
+  STG_CDN -->|ALIAS| CF_STG
+  PRD_CDN -->|ALIAS| CF_PRD
+```
+
+If any hosted zone is recreated, update the corresponding NS records in the phe-prd root so delegation stays valid.

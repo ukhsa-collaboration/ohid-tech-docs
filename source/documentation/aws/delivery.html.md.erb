@@ -1,0 +1,31 @@
+---
+title: Delivery and security
+parent: OHID AWS Landing Zone
+nav_order: 4
+---
+
+# <%= current_page.data.title %>
+
+## ECR
+
+New accounts use a single shared account for container images in ECR (`636728427214`). Repositories are typically named `<service>/<app>` (for example `active10/frontend`).
+
+Notes:
+- Image signing metadata is stored alongside images, but ECS does not currently validate signatures.
+- Images as scanned using both Synk and AWS Inspector.
+
+Cross-account access is handled via ECR repository policies:
+- Workload accounts: read-only pull
+- CI (GitHub Actions): write/push
+
+## Secrets
+
+Most secrets are created as placeholders in Terraform, with values set manually afterwards. This gives us some infrastructure visibility, but it means our infrastructure is not fully reproducible.
+
+## Tagging
+
+We use Terraform `default_tags` so resources get consistent tags automatically. In addition to standard UKHSA tags, we add tags pointing back to the relevant Terraform code repo to make it easier to find from where and why something was deployed.
+
+## KMS
+
+Default AWS-managed keys are used for most services. This keeps costs and operational overhead low, but it may not be sufficient for workloads with tighter compliance requirements.

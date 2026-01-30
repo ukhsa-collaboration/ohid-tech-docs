@@ -1,0 +1,34 @@
+---
+title: Platform basics
+parent: OHID AWS Landing Zone
+nav_order: 3
+---
+
+# <%= current_page.data.title %>
+
+## Networking
+
+Networking is currently created and managed by Terraform inside each workload account. The common result is one VPC per account with its own subnets, NAT gateways, and endpoints.
+
+This is fine for our current scale, but it has trade-offs:
+Guidance:
+
+- Keep CIDRs non-overlapping by default. This will allow cross-service networking through a TGW or peering in the future without too much NAT-hackery.
+- Prefer VPC endpoints for AWS services to reduce NAT traffic where feasible.
+
+## Terraform state
+
+State currently lives per-account: Terraform creates an S3 bucket for the backend. Optionally, a DynamoDB table is also created but this is no longer necessary with newer versions of Terraform.
+
+One potential improvement would be to centralise backend bucket creation via StackSets/CloudFormation.
+
+## Control Tower logging
+
+CloudTrail and Config are enabled through Control Tower, so logs should already land in the centralised log archive account. 
+
+## DNS
+
+DNS is not consistent today. It’s mostly delegated from `phe-prd`, but the subdomain patterns vary by service.
+
+Service-specific quirks are documented on each service page under `Services`.
+

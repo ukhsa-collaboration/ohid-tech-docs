@@ -1,0 +1,19 @@
+---
+title: Operations
+parent: AWS
+nav_order: 5
+---
+
+# <%= current_page.data.title %>
+
+## Alerting and monitoring
+
+There's a standard set of alarms that are deployed to services. These alarms are defined in the [devops-terraform-standard-alarms](https://github.com/ukhsa-collaboration/devops-terraform-standard-alarms) repo. The deployed alarms use a Lambda which is added automatically to each account via a StackSet. This Lambda forwards alarms to a Microsoft Teams channel. Refer to the [devops-phe-alarms-lambdas](https://github.com/ukhsa-collaboration/devops-phe-alarms-lambdas/) repo for more detailed information on how this works.
+
+## ECS standards
+
+For ECS services, start with the smallest CPU/memory configuration that will run, then resize based on real traffic and telemetry. This keeps costs low and avoids over-provisioning.
+
+## Logging and log retention
+
+Logging is inconsistent across services. Most apps output default framework logs; structured logging is rare which makes CloudWatch harder to use. 

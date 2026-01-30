@@ -1,0 +1,61 @@
+---
+title: AI Health Coach
+parent: Services
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+AI Health Coach is an exploratory piece of work that leverages Amazon Bedrock for LLMs. The project aims to provide a personalised health coaching experience using AI-driven recommendations.
+
+It is currently accessed via web browsers but could be primarily accessed through a mobile app in the future.
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TD;
+    User[User Request]
+    ALB[Application Load Balancer]
+    Frontend[ECS Fargate Task - Frontend]
+    Backend[ECS Fargate Task - Backend]
+    RDS[PostgreSQL RDS]
+    Redis[Redis Cache]
+    Bedrock[Bedrock]
+
+    User --> ALB --> Frontend
+    User --> ALB --> Backend --> RDS
+    Backend --> Bedrock
+    Backend --> RDS
+    Backend --> Redis
+```
+
+---
+
+## Components
+
+### Applications
+
+- **Repo:** [ohid-aihc-frontend](https://github.com/ukhsa-collaboration/ohid-aihc-frontend/)
+- React frontend used to interact with the API
+
+- **Repo:** [ohid-aihc](https://github.com/ukhsa-collaboration/ohid-aihc)
+- FastAPI-based application that uses Amazon Bedrock for LLMs and PostgreSQL for data storage
+
+### Infrastructure as Code (IaC)
+
+- **Repo:** [ohid-aihc-iac](https://github.com/ukhsa-collaboration/ohid-aihc-iac)
+- Terraform code defining AWS infrastructure for all environments.
+
+---
+
+## Environments
+
+| Environment | URL                                 | Notes |
+|-------------|-------------------------------------|-------|
+| **Staging**     | https://uat.aihc.betterhealthapps.com/ |
+| **Dev**     | https://dev.aihc.betterhealthapps.com/     |
+
+---

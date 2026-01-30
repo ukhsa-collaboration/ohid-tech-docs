@@ -1,0 +1,138 @@
+---
+title: Active 10
+parent: Services
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+Active 10 is a mobile app that tracks how much a user walks each day and how many minutes are brisk. 
+
+The app follows the [standard pattern](documentation/guides/standard-pattern). 
+
+## Architecture Overview
+
+```mermaid
+graph TD;
+    User[User Request]
+    ALB[Application Load Balancer]
+    CMS[ECS Fargate Task - CMS]
+    Backend[ECS Fargate Task - Backend]
+    RDS[PostgreSQL RDS]
+    SNS[SNS Topic]
+    SQS[SQS Queue]
+    Lambda[Lambda Functions]
+    MediaCloudfront[Static assets Cloudfront]
+    Redis[Redis Cache]
+    MediaS3[S3 Media Bucket]
+    GlueBucket[S3 Glue Bucket]
+
+    User --> ALB --> CMS --> RDS
+    User --> ALB --> Backend --> RDS
+    User --> MediaCloudfront --> MediaS3
+    Backend --> SNS --> SQS --> Lambda --> RDS
+    Backend --> SNS --> SQS --> Lambda --> GlueBucket
+    Backend --> RDS
+    Backend --> Redis
+```
+
+## Components
+
+### Applications
+
+- **Repo:** [active10-backend](https://github.com/ukhsa-collaboration/active10-backend)
+- Used to authenticate with NHS login and provides an API to allow NHS login-authenticated users to sync their Active 10 progress.
+
+- **Repo:** [active10-cms-public](https://github.com/ukhsa-collaboration/active10-cms-public)
+- Provides in-app content (e.g., articles ) for the Active 10 mobile app. Written using Django framework.
+
+- **Repo:** [active10-aws-lambda-functions](https://github.com/ukhsa-collaboration/active10-aws-lambda-functions)
+- Collection of Lambda functions which act on data received by the Active 10 backend API.
+
+- **Repo:** [active10-medallion-data-pipeline](https://github.com/ukhsa-collaboration/active10-medallion-data-pipeline)
+- AWS Glue ETL pipeline implementing the Medallion Architecture (Bronze > Silver > Gold) for processing daily user activity data.
+
+
+### Infrastructure as Code (IaC)
+
+- **Repo:** [active10-infra](https://github.com/ukhsa-collaboration/active10-infra)
+- Terraform code defining AWS infrastructure for all environments.
+
+## Environments
+
+| Environment | URL                                 | Notes |
+|-------------|-------------------------------------|-------|
+| **Production** | https://prd.active10.betterhealthapps.com/  |
+| **Staging**     | https://uat.active10.betterhealthapps.com/ |
+| **Dev**     | https://dev.active10.betterhealthapps.com/     |
+
+## DNS Overview
+
+Both domains are registered in the phe-prd AWS account. The authoritative name servers (NS) are managed via a Route 53 hosted zone in that account.
+
+### Domain usage by environment
+
+| Environment | App domain | CMS domain |
+|-------------|------------|------------|
+| Dev | dev.active10.betterhealthapps.com | active10.dev.phedigital.co.uk |
+| UAT | uat.active10.betterhealthapps.com | active10.stg.phedigital.co.uk |
+| Production (iOS) | prd.active10.betterhealthapps.com | active10.prod.phedigital.co.uk |
+| Production (Android) | prd.active10.betterhealthapps.com | cms.phedigital.co.uk |
+
+**Note:** In production, iOS and Android use different CMS domains even though they point to the same CMS. The reasoning behind this isn't known.
+
+
+```mermaid
+graph TD
+  %% Root hosted zones in phe-prd
+  subgraph PHE_PRD[phe-prd account - root hosted zones]
+    BHA[betterhealthapps.com - Hosted Zone];
+    PHE[phedigital.co.uk - Hosted Zone];
+  end
+
+  %% Environment accounts with their delegated zones and ALBs
+  subgraph DEV_ACC[dev account]
+    DEV_BHA[dev.active10.betterhealthapps.com - Hosted Zone];
+    DEV_PHE[active10.dev.phedigital.co.uk - Hosted Zone];
+    ALB_DEV[ALB - dev];
+  end
+
+  subgraph UAT_ACC[uat account]
+    UAT_BHA[uat.active10.betterhealthapps.com - Hosted Zone];
+    UAT_PHE[active10.stg.phedigital.co.uk - Hosted Zone];
+    ALB_UAT[ALB - uat];
+  end
+
+  subgraph PRD_ACC[prd account]
+    PRD_BHA[prd.active10.betterhealthapps.com - Hosted Zone];
+    PRD_PHE[active10.prod.phedigital.co.uk - Hosted Zone];
+    CMS_PHE[cms.phedigital.co.uk - Hosted Zone];
+    ALB_PRD[ALB - prd];
+  end
+
+  %% NS delegations from root zones to env zones
+  BHA -->|NS delegate| DEV_BHA;
+  BHA -->|NS delegate| UAT_BHA;
+  BHA -->|NS delegate| PRD_BHA;
+
+  PHE -->|NS delegate| DEV_PHE;
+  PHE -->|NS delegate| UAT_PHE;
+  PHE -->|NS delegate| PRD_PHE;
+  PHE -->|NS delegate| CMS_PHE;
+
+  %% Env zones alias to their environment ALB
+  DEV_BHA -->|ALIAS A| ALB_DEV;
+  DEV_PHE -->|ALIAS A| ALB_DEV;
+
+  UAT_BHA -->|ALIAS A| ALB_UAT;
+  UAT_PHE -->|ALIAS A| ALB_UAT;
+
+  PRD_BHA -->|ALIAS A| ALB_PRD;
+  PRD_PHE -->|ALIAS A - iOS| ALB_PRD;
+  CMS_PHE -->|ALIAS A - Android| ALB_PRD;
+```
+
+Each environment (account) manages its own hosted zone via Terraform.
+
+If zones are recreated for any reason, the corresponding NS records must be updated in the phe-prd account to point to the new name servers of the environment-specific hosted zone.

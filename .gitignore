@@ -1,0 +1,10 @@
+Gemfile.lock
+_site/**
+
+.idea/*
+*.iml
+*.DS_Store
+.vscode
+
+.structurizr
+dsl/**/workspace.json

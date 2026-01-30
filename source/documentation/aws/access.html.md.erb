@@ -1,0 +1,19 @@
+---
+title: User access
+parent: OHID AWS Landing Zone
+nav_order: 2
+---
+
+# <%= current_page.data.title %>
+
+Historically, access patterns were inconsistent (IAM users in some accounts, role assumption via other accounts, etc). We now provision access via IAM Identity Center (SSO).
+
+Users are managed in the `ohid-aws-landing-zone` repository and log in at `https://phe.awsapps.com/start`.
+
+## Identity source
+
+We use the built-in Identity Center directory (not AD / external IdP) so that delivery partners can access AWS without requiring a UKHSA Microsoft account.
+
+## Permission sets
+
+Current permission sets are fairly basic (read-only and admin). As the estate grows, a small set of standard permission sets will help reduce risk while keeping things usable.

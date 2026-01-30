@@ -1,0 +1,39 @@
+---
+title: "Get started"
+weight: 30
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+This is the guide for new DevOps Engineers working on the OHID mobile apps.
+
+## 1. Set up your GitHub account
+
+1. Set up a [GitHub] account. Existing personal accounts are fine to use.
+1. You will need to be added to the [DevOps Cloud Engineering Team](https://github.com/orgs/ukhsa-collaboration/teams/devops-cloud-engineering-team) to get access to the required OHID-related repositories.
+1. [Generate and register an SSH key pair](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#generating-a-new-ssh-key) for your laptop for your GitHub account. You should use a `4096` bit key.
+1. Associate your name and email to your git commits:
+
+    ```
+    $ git config --global user.email "firstname.lastname@ukhsa.gov.uk"
+    $ git config --global user.name "Firstname Lastname"
+    ```
+
+## 2. Get AWS access
+
+To work with products and services at, you will require an AWS IAM User in the OHID AWS Organisation.
+
+### Request an account
+
+AWS IAM Identity Centre users are all managed in code using Terraform. These are in the [OHID AWS Landing Zone Repo](https://github.com/ukhsa-collaboration/ohid-aws-landing-zone)
+
+Once your account has been created, an existing AWS admin will need to login to the AWS console, navigate to the `IAM Identity Center` and reset your password and send an email verification link.
+
+### Sign in to AWS
+
+Once your password has been reset and MFA set-up, go to [the OHID organisation AWS Sign page](https://phe.awsapps.com/start), and use the following credentials:
+
+- Username: firstname.lastname
+- Password: your password

@@ -1,0 +1,112 @@
+---
+title: Weight Loss Plan
+parent: Services
+---
+
+# <%= current_page.data.title %>
+
+Weight Loss Plan delivers the 12-week Better Health programme. Editors curate plan content, surveys, goals, and rewards through a Django CMS which exposes an API that the mobile and web clients consume. The stack runs entirely in AWS using GitHub Actions → ECR → ECS deploys, with CloudFront distributing static assets and Aurora PostgreSQL plus OpenSearch storing structured and search data respectively.
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TD;
+    User[User Request]
+    CloudFront[CloudFront CDN]
+    S3Media[S3 Media Bucket]
+    ALB[Application Load Balancer]
+    ECS[ECS Fargate - Django CMS/API]
+    RDS[Aurora PostgreSQL]
+    OpenSearch[Amazon OpenSearch]
+    Firebase[Firebase / Push Services]
+    SurveyMonkey[SurveyMonkey API]
+    Secrets[Secrets Manager / SSM]
+
+    User --> CloudFront --> S3Media
+    User --> ALB --> ECS --> RDS
+    ECS --> OpenSearch
+    ECS --> S3Media
+    ECS --> Firebase
+    ECS --> SurveyMonkey
+    ECS --> Secrets
+```
+
+---
+
+## Components
+
+### Applications
+
+- **Repo:** [weightloss-cms-iac](https://github.com/ukhsa-collaboration/weightloss-cms-iac) – Django CMS that editors use to manage articles, recipes, legal copy, rewards, BMI calculators, and in-app surveys. It serves HTML for the CMS itself plus JSON endpoints for the mobile app, integrates with SurveyMonkey, Firebase, and Google APIs, and indexes page metadata in OpenSearch.
+
+### Infrastructure as Code (IaC)
+
+- **Repo:** [weightloss-iac](https://github.com/ukhsa-collaboration/weightloss-iac) – Terraform modules that provision the VPC, ECS cluster/service, Aurora PostgreSQL cluster, OpenSearch domain, CloudFront distribution, Route 53 zones for both the CMS and CDN hostnames, and GitHub OIDC roles used by application deploy pipelines.
+
+---
+
+## Environments
+
+| Environment | URL | Notes |
+|-------------|-----|-------|
+| **Production** | https://weightloss-cms-prd.phedigital.co.uk | Static assets served from https://cdn.prd.weightloss.phedigital.co.uk. |
+| **Staging** | https://weightloss-cms-stg.phedigital.co.uk | Mirrors production integrations; CDN https://cdn.stg.weightloss.phedigital.co.uk. |
+| **Dev** | https://weightloss-cms-dev.phedigital.co.uk | First landing-zone account; CDN https://cdn.dev.weightloss.phedigital.co.uk. |
+
+---
+
+## DNS Overview
+
+Every environment manages two Route 53 hosted zones inside its AWS account: one for the CMS hostname (`weightloss-cms-<env>.phedigital.co.uk`) that ALIASes the environment’s ALB, and one for the CDN hostname (`cdn.<env>.weightloss.phedigital.co.uk`) that ALIASes the CloudFront distribution (issued out of us-east-1). The root `phedigital.co.uk` zone in the phe-prd account delegates both hostnames to the environment accounts.
+
+Subdomains:
+
+- weightloss-cms-prd.phedigital.co.uk / -stg / -dev – CMS and API entrypoints (ALB).
+- cdn.prd.weightloss.phedigital.co.uk / cdn.stg.weightloss.phedigital.co.uk / cdn.dev.weightloss.phedigital.co.uk – CloudFront distributions that front the S3 media bucket.
+
+```mermaid
+graph TD
+  subgraph PHE_PRD[phedigital.co.uk – phe-prd account]
+    ROOT[phedigital.co.uk Root Zone]
+  end
+
+  subgraph DEV_ACC[dev account]
+    DEV_CMS[weightloss-cms-dev.phedigital.co.uk]
+    DEV_CDN[cdn.dev.weightloss.phedigital.co.uk]
+    ALB_DEV[ALB - dev]
+    CF_DEV[CloudFront - dev]
+  end
+
+  subgraph STG_ACC[stg account]
+    STG_CMS[weightloss-cms-stg.phedigital.co.uk]
+    STG_CDN[cdn.stg.weightloss.phedigital.co.uk]
+    ALB_STG[ALB - stg]
+    CF_STG[CloudFront - stg]
+  end
+
+  subgraph PRD_ACC[prd account]
+    PRD_CMS[weightloss-cms-prd.phedigital.co.uk]
+    PRD_CDN[cdn.prd.weightloss.phedigital.co.uk]
+    ALB_PRD[ALB - prd]
+    CF_PRD[CloudFront - prd]
+  end
+
+  ROOT -->|NS| DEV_CMS
+  ROOT -->|NS| STG_CMS
+  ROOT -->|NS| PRD_CMS
+  ROOT -->|NS| DEV_CDN
+  ROOT -->|NS| STG_CDN
+  ROOT -->|NS| PRD_CDN
+
+  DEV_CMS --> ALB_DEV
+  STG_CMS --> ALB_STG
+  PRD_CMS --> ALB_PRD
+
+  DEV_CDN --> CF_DEV
+  STG_CDN --> CF_STG
+  PRD_CDN --> CF_PRD
+```
+
+If a hosted zone is recreated, update the NS entries held in the phe-prd root zone so delegation stays correct.

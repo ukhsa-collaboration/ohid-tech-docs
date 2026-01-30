@@ -1,0 +1,116 @@
+---
+title: Quit Smoking
+parent: Services
+---
+
+# <%= current_page.data.title %>
+
+Quit Smoking (previously Smoke Free Days) is the Better Health quit-smoking companion and the successor to the Stoptober app.
+
+The app follows the [standard pattern](documentation/guides/standard-pattern). 
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TD;
+    User[Mobile App]
+    ALB[Application Load Balancer]
+    Backend[ECS - Quit Smoking CMS]
+    NHSLogin[ECS - NHS Login Backend]
+    RDS[Aurora PostgreSQL]
+    Redis[Elasticache Redis]
+    MediaCloudfront[Static assets Cloudfront]
+    MediaS3[S3 Media Bucket]
+    NHSAuth[NHS Login / PDS APIs]
+
+    User --> ALB --> Backend --> RDS
+    User --> MediaCloudfront --> MediaS3
+    Backend --> MediaS3
+    ALB --> NHSLogin --> RDS
+    NHSLogin --> Redis
+    NHSLogin --> NHSAuth
+```
+
+---
+
+## Components
+
+### Applications
+
+- **Repo:** [smoke-free-days-iaas](https://github.com/ukhsa-collaboration/smoke-free-days-iaas) – Django CMS mobile client.
+- **Repo:** [quit-smoking-backend](https://github.com/ukhsa-collaboration/quit-smoking-backend) – FastAPI service that handles NHS login flows and syncs data. It also caches JWT tokens tokens in Redis.
+
+### Infrastructure as Code (IaC)
+
+- **Repo:** [smoke-free-days-iac](https://github.com/ukhsa-collaboration/smoke-free-days-iac) – Terraform code for the infrastructure.
+
+---
+
+## Environments
+
+| Environment | URL | Notes |
+|-------------|-----|-------|
+| **Production** | https://smokefreedays-prod.phedigital.co.uk | NHS login served from https://prd.quitsmoking.betterhealthapps.com. |
+| **Staging** | https://smokefreedays-staging.phedigital.co.uk | Mirrors prod services; NHS login available at https://uat.quitsmoking.betterhealthapps.com. |
+| **Dev** | https://smokefreedays-dev.phedigital.co.uk | First landing-zone account; NHS login endpoints at https://dev.quitsmoking.betterhealthapps.com. |
+
+---
+
+## DNS Overview
+
+Two DNS hierarchies are involved:
+
+1. `phedigital.co.uk` (phe-prd account) delegates `smokefreedays-<env>.phedigital.co.uk` to the individual accounts, where the ALB aliases and ACM certificates live.
+2. `betterhealthapps.com` (also phe-prd) delegates `<env>.quitsmoking.betterhealthapps.com` so the NHS login backend can expose a friendly hostname.
+
+Subdomains:
+
+- smokefreedays-dev.phedigital.co.uk / -staging / -prod – Primary ALB entrypoints for each environment.
+- dev.quitsmoking.betterhealthapps.com / staging / prod – NHS Login backend endpoints.
+
+```mermaid
+graph TD
+  subgraph PHE_PRD[phe-prd account]
+    PHE[phedigital.co.uk]
+    BHA[betterhealthapps.com]
+  end
+
+  subgraph DEV_ACC[dev account]
+    DEV_API[smokefreedays-dev.phedigital.co.uk]
+    DEV_NHS[dev.quitsmoking.betterhealthapps.com]
+    ALB_DEV[ALB - dev]
+  end
+
+  subgraph STG_ACC[staging account]
+    STG_API[smokefreedays-staging.phedigital.co.uk]
+    STG_NHS[staging.quitsmoking.betterhealthapps.com]
+    ALB_STG[ALB - staging]
+  end
+
+  subgraph PRD_ACC[prd account]
+    PRD_API[smokefreedays-prod.phedigital.co.uk]
+    PRD_NHS[prod.quitsmoking.betterhealthapps.com]
+    ALB_PRD[ALB - prod]
+  end
+
+  PHE -->|NS| DEV_API
+  PHE -->|NS| STG_API
+  PHE -->|NS| PRD_API
+
+  BHA -->|NS| DEV_NHS
+  BHA -->|NS| STG_NHS
+  BHA -->|NS| PRD_NHS
+
+  DEV_API --> ALB_DEV
+  DEV_NHS --> ALB_DEV
+
+  STG_API --> ALB_STG
+  STG_NHS --> ALB_STG
+
+  PRD_API --> ALB_PRD
+  PRD_NHS --> ALB_PRD
+```
+
+If any hosted zone is recreated, be sure to refresh the glue/NS records in the phe-prd root zones so the delegation chain stays healthy.

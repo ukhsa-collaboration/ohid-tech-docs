@@ -1,0 +1,32 @@
+---
+title: Centralised backups
+parent: OHID AWS Landing Zone
+nav_order: 5
+---
+
+# <%= current_page.data.title %>
+
+We use AWS Backup deployed via Control Tower to centralise our backups across the organization. Backups are encrypted with a multi-region KMS key which resides in the AWS management account, and are stored in an AWS Backup vault in the local account and, where required, copied into a vault in the Central Backup account. Resources are backed up according to tags: adding one of the tags from the below table determines the backup policy for that resource.
+
+The backup administrator account (delegated admin for AWS Backup) owns the backup policies and organisational configurations. Workload accounts apply tags to resources, and AWS Backup executes the policy based on those tags. The Central Backup account is the destination for cross-account copies and acts as the centralised retention store.
+
+## Backup policies
+
+| Tag | Local vault retention | Central backup vault retention |
+| --- | --- | --- |
+| `aws-control-tower-backuphourly: true` | 2 weeks | No copy |
+| `aws-control-tower-backupdaily: true` | 2 weeks | 1 month |
+| `aws-control-tower-backupweekly: true` | 1 month | 3 months |
+| `aws-control-tower-backupmonthly: true` | 3 months | 3 months |
+
+
+Services which can be backed up are Amazon Relational Database Service (Amazon RDS), Amazon Elastic Compute Cloud (Amazon EC2), Amazon DynamoDB, Amazon Elastic Block Store (Amazon EBS), Amazon Elastic File System (Amazon EFS). Tagging is the opt-in mechanism and should be applied only where backups are genuinely needed.
+
+## Archiving
+
+S3 Glacier storage can be used as part of backups. The underlying implementation details aren't public but it likely uses tape drives or other slow, cheap, reliable storage media. Retrieving data takes between 1 minute to 12 hours. We do not use this for any of our policies but it is a possibility in the future.
+
+## Operational notes
+
+- Test restores for critical systems on a regular cadence to confirm backups are usable. 
+- Monitor AWS Backup job failures and alerts in workload accounts and the Central Backup account.

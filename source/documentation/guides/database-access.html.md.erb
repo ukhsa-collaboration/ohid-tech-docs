@@ -1,0 +1,107 @@
+---
+title: Accessing Databases
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+Network access to databases is brokered through a Bastion host in the private subnets of the same VPC and an SSM Session Manager tunnel, so no direct exposure of the database endpoints is required.
+
+## Application access
+
+We do not currently use IAM authentication for this but it may be preferable to move towards this. Each application (ECS service, Lambda, etc) that requires access to a database must currently have its permissions set up manually.
+
+## Connecting to a database (SSM Port Forwarding)
+
+We use AWS Session Manager to tunnel traffic from to the RDS databases.
+
+The Python script [`open_rds_tunnel.py`](scripts/open_rds_tunnel.py) automates this:
+
+* Finds the bastion EC2 instance (tagged `*-ec2-bastion`).
+* Locates the single Postgres RDS cluster or instance in the account (specify `--engine mysql` for MariaDB/MySQL).
+* Chooses the reader endpoint by default (add `--writer` to connect to the writer).
+* Starts an SSM port forwarding session.
+* Attempts IAM authentication first, and falls back to using the cluster’s Secrets Manager password if IAM fails.
+* Leaves the tunnel open until you exit with `Ctrl+C`.
+
+### Prerequisites
+
+- **AWS CLI with Session Manager Plugin**
+
+### Usage
+
+#### Start the Tunnel
+
+```bash
+python open_rds_tunnel.py
+```
+
+Options:
+
+* `--db-name <name>` : database name (default: `postgres`)
+* `--writer` : connect to writer endpoint instead of reader
+* `--region <region>` : AWS region (default: `eu-west-2`)
+
+Example:
+
+```bash
+python open_rds_tunnel.py --db-name <db_name> --writer --region eu-west-2
+```
+
+#### Connect with `psql`
+
+While the tunnel is running in one terminal, use another to connect:
+
+```bash
+aws rds generate-db-auth-token \
+  --hostname <cluster-endpoint> \
+  --port 5432 \
+  --username db_iam_user \
+  --region eu-west-2 \
+| psql "host=<cluster-endpoint> hostaddr=127.0.0.1 port=5432 sslmode=require dbname=<db_name> user=db_iam_user"
+```
+
+#### Connect with pgAdmin / DBeaver
+
+* **Host**: `<cluster-endpoint>`
+* **Host Address**: `127.0.0.1`
+* **Port**: `5432`
+* **Database**: `reporting_db` (or your chosen db)
+* **Username**: IAM user (`db_iam_user`)
+* **SSL Mode**: `require`
+
+Your password will need to be generated with the below command:
+
+```bash
+aws rds generate-db-auth-token \
+  --hostname <cluster-endpoint> \
+  --port 5432 \
+  --username db_iam_user \
+  --region eu-west-2
+```
+
+Important: Always set host to the real RDS hostname, not `localhost`. Use `hostaddr=127.0.0.1` to route through the tunnel.
+
+### Common Errors
+
+**`Port 5432 is already in use`**
+
+Stop your local Postgres:
+
+```bash
+lsof -i :5432
+brew services stop postgresql
+```
+
+**`Error: Could not retrieve Bastion instance details`**
+
+Check your AWS role/session with `aws sts get-caller-identity`. Ensure you’re authenticated and your session hasn’t expired.
+
+**`Cannot find Bastion server`**
+
+Ensure there is an EC2 instance in the account with a name ending in `-ec2-bastion`.
+
+**`Session Manager plugin not found`**
+
+See [Install the Session Manager plugin for the AWS CLI](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html). 

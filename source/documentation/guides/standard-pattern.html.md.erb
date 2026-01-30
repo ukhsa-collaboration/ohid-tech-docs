@@ -1,0 +1,23 @@
+---
+title: Standard Pattern
+parent: Guides
+---
+
+# <%= current_page.data.title %>
+
+All of the Mobile Apps follow a broadly similar pattern. It is described below but each app will have slight differences which are documented on their individual pages.
+
+## Application Load Balancer (ALB)
+The only public component. Routes requests to the CMS or NHS login backend based on the Host header.
+
+## Content Management System (CMS)
+Django-powered API for in-app content. Content is managed via the Django admin site.
+
+## S3 and Cloudfront
+Media is uploaded to S3 via the CMS admin and served through CloudFront.
+
+## NHS login backend
+FastAPI service that authenticates via NHS login and provides a user data sync API.
+
+## Redis
+Caches token state to enforce single active sessions (i.e. single devices) and prevent sync conflicts.

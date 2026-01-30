@@ -1,0 +1,24 @@
+---
+title: OHID AWS Landing Zone
+parent: AWS
+nav_order: 1
+has_children: true
+---
+
+# <%= current_page.data.title %>
+
+This section captures the current OHID AWS setup and the conventions we try to follow. It’s intended to be practical documentation for day-to-day work rather than an AWS best practices guide.
+
+## Contents
+
+- [Account structure](documentation/aws/account-structure)
+- [User access (IAM Identity Center)](documentation/aws/access)
+- [Platform basics (networking, state, DNS)](documentation/aws/account-structure)
+- [Delivery and security (ECR, secrets, tagging, KMS)](documentation/aws/delivery)
+- [Operations (monitoring, logging,, ECS standards)](documentation/aws/operations)
+
+## AWS Overview
+
+Originally, we had three accounts: `phe-prd`, `phe-uat` and `phe-dev`. `phe-prd` currently runs most of the OHID live production workloads but these workloads are slowly being moved to their own accounts.
+
+The new setup is: each service (for example Active 10) gets at least three AWS accounts: Dev, UAT, and Production. These are managed through Terraform in the [ohid-aws-landing-zone](https://github.com/ukhsa-collaboration/ohid-aws-landing-zone) repo. Account Factory for Terraform could be used in the future but may be unnecessarily complex for our scale.
