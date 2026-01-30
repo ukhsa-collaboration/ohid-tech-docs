@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en" class="govuk-template no-js">
+  <head>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <title>Weight Loss Plan - OHID Technical Documentation</title>
+
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
+
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/wlp.html">
+
+      <meta name="robots" content="noindex" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
+      <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta name="twitter:title" content="Weight Loss Plan - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/wlp.html" />
+
+      <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta property="og:site_name" content="OHID Technical Documentation" />
+      <meta property="og:title" content="Weight Loss Plan" />
+      <meta property="og:type" content="object" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/wlp.html" />
+
+    
+  </head>
+
+  <body class="govuk-template__body">
+    <script>document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');</script>
+
+    <div class="app-pane">
+      <div class="app-pane__header toc-open-disabled">
+        <a href="#content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+
+        <header class="govuk-header app-header" role="banner" data-module="govuk-header">
+  <div class="govuk-header__container govuk-header__container--full-width">
+    <div class="govuk-header__logo">
+      <a href="https://ukhsa-collaboration.github.io/ohid-tech-docs" class="govuk-header__link govuk-header__link--homepage">
+        <span class="govuk-header__product-name">
+          OHID Technical Documentation
+        </span>
+      </a>
+        <strong class="govuk-tag">internal</strong>
+    </div>
+    <div class="govuk-header__content">
+      <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
+        <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
+        <ul id="navigation" class="govuk-header__navigation-list">
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
+            </li>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
+            </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+      </div>
+
+        <div id="toc-heading" class="toc-show fixedsticky">
+          <button type="button" class="toc-show__label js-toc-show" aria-controls="toc">
+            Table of contents <span class="toc-show__icon"></span>
+          </button>
+        </div>
+
+      <div class="app-pane__body" data-module="in-page-navigation">
+          <div class="app-pane__toc">
+            <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
+  <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
+    <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
+    <label class="govuk-label search__label" for="search" aria-hidden="true">
+      Search (via Google)
+    </label>
+    <input
+      type="text"
+      id="search" name="q"
+      class="govuk-input govuk-!-margin-bottom-0 search__input"
+      aria-controls="search-results"
+      placeholder="Search">
+    <button type="submit" class="search__button">Search</button>
+  </form>
+</div>
+
+              <button type="button" class="toc__close js-toc-close" aria-controls="toc" aria-label="Hide table of contents"></button>
+              <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
+                      <ul>
+  <li>
+    <a href="#weight-loss-plan"><span>Weight Loss Plan</span></a>
+    <ul>
+      <li>
+        <a href="#architecture-overview"><span>Architecture Overview</span></a>
+      </li>
+      <li>
+        <a href="#components"><span>Components</span></a>
+      </li>
+      <li>
+        <a href="#environments"><span>Environments</span></a>
+      </li>
+      <li>
+        <a href="#dns-overview"><span>DNS Overview</span></a>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+
+              </nav>
+            </div>
+          </div>
+
+        <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
+          <main id="content" class="technical-documentation" data-module="anchored-headings">
+            <h1 id="weight-loss-plan">Weight Loss Plan</h1>
+<p>Weight Loss Plan delivers the 12-week Better Health programme. Editors curate plan content, surveys, goals, and rewards through a Django CMS which exposes an API that the mobile and web clients consume. The stack runs entirely in AWS using GitHub Actions → ECR → ECS deploys, with CloudFront distributing static assets and Aurora PostgreSQL plus OpenSearch storing structured and search data respectively.</p>
+
+<hr>
+<h2 id="architecture-overview">Architecture Overview</h2>
+<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
+    User[User Request]
+    CloudFront[CloudFront CDN]
+    S3Media[S3 Media Bucket]
+    ALB[Application Load Balancer]
+    ECS[ECS Fargate - Django CMS/API]
+    RDS[Aurora PostgreSQL]
+    OpenSearch[Amazon OpenSearch]
+    Firebase[Firebase / Push Services]
+    SurveyMonkey[SurveyMonkey API]
+    Secrets[Secrets Manager / SSM]
+
+    User --&gt; CloudFront --&gt; S3Media
+    User --&gt; ALB --&gt; ECS --&gt; RDS
+    ECS --&gt; OpenSearch
+    ECS --&gt; S3Media
+    ECS --&gt; Firebase
+    ECS --&gt; SurveyMonkey
+    ECS --&gt; Secrets
+</code></pre></div>
+<hr>
+<h2 id="components">Components</h2>
+<h3 id="applications">Applications</h3>
+
+<ul>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/weightloss-cms-iac">weightloss-cms-iac</a> – Django CMS that editors use to manage articles, recipes, legal copy, rewards, BMI calculators, and in-app surveys. It serves HTML for the CMS itself plus JSON endpoints for the mobile app, integrates with SurveyMonkey, Firebase, and Google APIs, and indexes page metadata in OpenSearch.</li>
+</ul>
+<h3 id="infrastructure-as-code-iac">Infrastructure as Code (IaC)</h3>
+
+<ul>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/weightloss-iac">weightloss-iac</a> – Terraform modules that provision the VPC, ECS cluster/service, Aurora PostgreSQL cluster, OpenSearch domain, CloudFront distribution, Route 53 zones for both the CMS and CDN hostnames, and GitHub OIDC roles used by application deploy pipelines.</li>
+</ul>
+
+<hr>
+<h2 id="environments">Environments</h2>
+<div class="table-container">
+        <table>
+          <tr>
+<th>Environment</th>
+<th>URL</th>
+<th>Notes</th>
+</tr><tr>
+<td><strong>Production</strong></td>
+<td>https://weightloss-cms-prd.phedigital.co.uk</td>
+<td>Static assets served from https://cdn.prd.weightloss.phedigital.co.uk.</td>
+</tr><tr>
+<td><strong>Staging</strong></td>
+<td>https://weightloss-cms-stg.phedigital.co.uk</td>
+<td>Mirrors production integrations; CDN https://cdn.stg.weightloss.phedigital.co.uk.</td>
+</tr><tr>
+<td><strong>Dev</strong></td>
+<td>https://weightloss-cms-dev.phedigital.co.uk</td>
+<td>First landing-zone account; CDN https://cdn.dev.weightloss.phedigital.co.uk.</td>
+</tr>
+        </table>
+      </div>
+<hr>
+<h2 id="dns-overview">DNS Overview</h2>
+<p>Every environment manages two Route 53 hosted zones inside its AWS account: one for the CMS hostname (<code>weightloss-cms-&lt;env&gt;.phedigital.co.uk</code>) that ALIASes the environment’s ALB, and one for the CDN hostname (<code>cdn.&lt;env&gt;.weightloss.phedigital.co.uk</code>) that ALIASes the CloudFront distribution (issued out of us-east-1). The root <code>phedigital.co.uk</code> zone in the phe-prd account delegates both hostnames to the environment accounts.</p>
+<p>Subdomains:</p>
+
+<ul>
+<li>weightloss-cms-prd.phedigital.co.uk / -stg / -dev – CMS and API entrypoints (ALB).</li>
+<li>cdn.prd.weightloss.phedigital.co.uk / cdn.stg.weightloss.phedigital.co.uk / cdn.dev.weightloss.phedigital.co.uk – CloudFront distributions that front the S3 media bucket.</li>
+</ul>
+<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD
+  subgraph PHE_PRD[phedigital.co.uk – phe-prd account]
+    ROOT[phedigital.co.uk Root Zone]
+  end
+
+  subgraph DEV_ACC[dev account]
+    DEV_CMS[weightloss-cms-dev.phedigital.co.uk]
+    DEV_CDN[cdn.dev.weightloss.phedigital.co.uk]
+    ALB_DEV[ALB - dev]
+    CF_DEV[CloudFront - dev]
+  end
+
+  subgraph STG_ACC[stg account]
+    STG_CMS[weightloss-cms-stg.phedigital.co.uk]
+    STG_CDN[cdn.stg.weightloss.phedigital.co.uk]
+    ALB_STG[ALB - stg]
+    CF_STG[CloudFront - stg]
+  end
+
+  subgraph PRD_ACC[prd account]
+    PRD_CMS[weightloss-cms-prd.phedigital.co.uk]
+    PRD_CDN[cdn.prd.weightloss.phedigital.co.uk]
+    ALB_PRD[ALB - prd]
+    CF_PRD[CloudFront - prd]
+  end
+
+  ROOT --&gt;|NS| DEV_CMS
+  ROOT --&gt;|NS| STG_CMS
+  ROOT --&gt;|NS| PRD_CMS
+  ROOT --&gt;|NS| DEV_CDN
+  ROOT --&gt;|NS| STG_CDN
+  ROOT --&gt;|NS| PRD_CDN
+
+  DEV_CMS --&gt; ALB_DEV
+  STG_CMS --&gt; ALB_STG
+  PRD_CMS --&gt; ALB_PRD
+
+  DEV_CDN --&gt; CF_DEV
+  STG_CDN --&gt; CF_STG
+  PRD_CDN --&gt; CF_PRD
+</code></pre></div><p>If a hosted zone is recreated, update the NS entries held in the phe-prd root zone so delegation stays correct.</p>
+
+            
+          </main>
+
+          <aside>
+              <ul class="contribution-banner">
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/services/wlp.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Weight+Loss+Plan%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fservices%2Fwlp.html%29&amp;labels=bug&amp;title=Re%3A+%27Weight+Loss+Plan%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
+              </ul>
+          </aside>
+
+          <footer class="govuk-footer app-footer" role="contentinfo">
+  <div class="govuk-footer__meta">
+    <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
+
+
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        class="govuk-footer__licence-logo"
+        xmlns="http://www.w3.org/2000/svg"
+        viewbox="0 0 483.2 195.7"
+        height="17"
+        width="41"
+      >
+        <path
+          fill="currentColor"
+          d="M421.5 142.8V.1l-50.7 32.3v161.1h112.4v-50.7zm-122.3-9.6A47.12 47.12 0 0 1 221 97.8c0-26 21.1-47.1 47.1-47.1 16.7 0 31.4 8.7 39.7 21.8l42.7-27.2A97.63 97.63 0 0 0 268.1 0c-36.5 0-68.3 20.1-85.1 49.7A98 98 0 0 0 97.8 0C43.9 0 0 43.9 0 97.8s43.9 97.8 97.8 97.8c36.5 0 68.3-20.1 85.1-49.7a97.76 97.76 0 0 0 149.6 25.4l19.4 22.2h3v-87.8h-80l24.3 27.5zM97.8 145c-26 0-47.1-21.1-47.1-47.1s21.1-47.1 47.1-47.1 47.2 21 47.2 47S123.8 145 97.8 145"
+        />
+      </svg>
+      <span class="govuk-footer__licence-description">
+        All content is available under the
+        <a
+          class="govuk-footer__link"
+          href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+          rel="license"
+        >Open Government Licence v3.0</a>, except where otherwise stated
+      </span>
+    </div>
+    <div class="govuk-footer__meta-item">
+      <a
+        class="govuk-footer__link govuk-footer__copyright-logo"
+        href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/"
+      >© Crown copyright</a>
+    </div>
+  </div>
+</footer>
+
+        </div>
+      </div>
+    </div>
+
+    
+    <script src="../../javascripts/application.js"></script>
+  </body>
+</html>

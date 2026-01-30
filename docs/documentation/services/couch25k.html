@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" class="govuk-template no-js">
+  <head>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <title>Couch to 5K - OHID Technical Documentation</title>
+
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
+
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/couch25k.html">
+
+      <meta name="robots" content="noindex" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
+      <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta name="twitter:title" content="Couch to 5K - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/couch25k.html" />
+
+      <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta property="og:site_name" content="OHID Technical Documentation" />
+      <meta property="og:title" content="Couch to 5K" />
+      <meta property="og:type" content="object" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/couch25k.html" />
+
+    
+  </head>
+
+  <body class="govuk-template__body">
+    <script>document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');</script>
+
+    <div class="app-pane">
+      <div class="app-pane__header toc-open-disabled">
+        <a href="#content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+
+        <header class="govuk-header app-header" role="banner" data-module="govuk-header">
+  <div class="govuk-header__container govuk-header__container--full-width">
+    <div class="govuk-header__logo">
+      <a href="https://ukhsa-collaboration.github.io/ohid-tech-docs" class="govuk-header__link govuk-header__link--homepage">
+        <span class="govuk-header__product-name">
+          OHID Technical Documentation
+        </span>
+      </a>
+        <strong class="govuk-tag">internal</strong>
+    </div>
+    <div class="govuk-header__content">
+      <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
+        <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
+        <ul id="navigation" class="govuk-header__navigation-list">
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
+            </li>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
+            </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+      </div>
+
+        <div id="toc-heading" class="toc-show fixedsticky">
+          <button type="button" class="toc-show__label js-toc-show" aria-controls="toc">
+            Table of contents <span class="toc-show__icon"></span>
+          </button>
+        </div>
+
+      <div class="app-pane__body" data-module="in-page-navigation">
+          <div class="app-pane__toc">
+            <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
+  <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
+    <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
+    <label class="govuk-label search__label" for="search" aria-hidden="true">
+      Search (via Google)
+    </label>
+    <input
+      type="text"
+      id="search" name="q"
+      class="govuk-input govuk-!-margin-bottom-0 search__input"
+      aria-controls="search-results"
+      placeholder="Search">
+    <button type="submit" class="search__button">Search</button>
+  </form>
+</div>
+
+              <button type="button" class="toc__close js-toc-close" aria-controls="toc" aria-label="Hide table of contents"></button>
+              <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
+                      <ul>
+  <li>
+    <a href="#couch-to-5k"><span>Couch to 5K</span></a>
+    <ul>
+      <li>
+        <a href="#architecture-overview"><span>Architecture Overview</span></a>
+      </li>
+      <li>
+        <a href="#components"><span>Components</span></a>
+      </li>
+      <li>
+        <a href="#environments"><span>Environments</span></a>
+      </li>
+      <li>
+        <a href="#dns-overview"><span>DNS Overview</span></a>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+
+              </nav>
+            </div>
+          </div>
+
+        <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
+          <main id="content" class="technical-documentation" data-module="anchored-headings">
+            <h1 id="couch-to-5k">Couch to 5K</h1>
+<p>Couch to 5K is the Better Health running coach app.</p>
+<p>The app follows the <a href="../guides/standard-pattern.html">standard pattern</a> but also has a BuddyRun feature which runs in a separate ECS container and uses Redis. This uses WebSockets through the ALB instead of HTTP.</p>
+
+<hr>
+<h2 id="architecture-overview">Architecture Overview</h2>
+<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
+    User[Mobile App]
+    CloudFront[CloudFront CDN]
+    MediaS3[S3 Media Bucket]
+    ALB[Application Load Balancer]
+    CMS[ECS Fargate - Django API]
+    BuddyRun[ECS Fargate]
+    Redis[BuddyRun Redis]
+    RDS[Aurora PostgreSQL]
+
+    User --&gt; CloudFront --&gt; MediaS3
+    CMS --&gt; MediaS3
+    User --&gt; ALB --&gt; CMS --&gt; RDS
+    CMS --&gt; Secrets
+    User --&gt; ALB --&gt; BuddyRun
+    BuddyRun --&gt; Redis
+</code></pre></div>
+<hr>
+<h2 id="components">Components</h2>
+<h3 id="applications">Applications</h3>
+
+<ul>
+<li>CMS – https://github.com/ukhsa-collaboration/couch25k_cloudformation_iaas</li>
+<li>BuddyRun - https://github.com/ukhsa-collaboration/couch-to-5k-buddy-run</li>
+</ul>
+<h3 id="infrastructure-as-code-iac">Infrastructure as Code (IaC)</h3>
+
+<ul>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/c25k-iac">c25k-iac</a> – Terraform defining the AWS infrastructure.</li>
+</ul>
+
+<hr>
+<h2 id="environments">Environments</h2>
+<div class="table-container">
+        <table>
+          <tr>
+<th>Environment</th>
+<th>URL</th>
+</tr><tr>
+<td><strong>Production</strong></td>
+<td>https://couchto5kprod.phedigital.co.uk</td>
+</tr><tr>
+<td><strong>Staging</strong></td>
+<td>https://couchto5kstg.phedigital.co.uk</td>
+</tr><tr>
+<td><strong>Dev</strong></td>
+<td>https://couchto5kdev.phedigital.co.uk</td>
+</tr>
+        </table>
+      </div>
+<hr>
+<h2 id="dns-overview">DNS Overview</h2>
+<p>The <code>phedigital.co.uk</code> apex lives in the phe-prd account. That zone delegates <code>couchto5kprod.phedigital.co.uk</code>, <code>couchto5kstg.phedigital.co.uk</code> and <code>couchto5kdev.phedigital.co.uk</code> to the respective landing-zone accounts, where Terraform manages the ALB aliases and CDN records. Each environment also hosts a <code>cdn.phedigital&lt;env&gt;.co.uk</code> record that aliases the CloudFront distribution in us-east-1.</p>
+<p>The subdomains for Buddyrun are <code>couch25k.buddyrun.&lt;env&gt;.phedigital.co.uk</code>. This might imply that other applications also have a Buddyrun but they do not.</p>
+<p>Subdomains in use:</p>
+
+<ul>
+<li>couchto5kprod.phedigital.co.uk – Production API / CMS ALB.</li>
+<li>couchto5kstg.phedigital.co.uk – Staging API / CMS ALB.</li>
+<li>couchto5kdev.phedigital.co.uk – Development API / CMS ALB.</li>
+<li>cdn.couchto5kprod.phedigital.co.uk – Production CloudFront distribution (audio/media).</li>
+<li>cdn.couchto5kstg.phedigital.co.uk – Staging CloudFront distribution.</li>
+<li>cdn.couchto5kdev.phedigital.co.uk – Development CloudFront distribution.</li>
+<li>couch25k.buddyrun.prod.phedigital.co.uk - Prod Buddyrun ALB</li>
+<li>couch25k.buddyrun.stg.phedigital.co.uk - Staging Buddyrun ALB</li>
+<li>couch25k.buddyrun.dev.phedigital.co.uk - Development Buddyrun ALB</li>
+</ul>
+<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD
+  subgraph PHE_PRD[phedigital.co.uk – phe-prd account]
+    PHE[phedigital.co.uk Root Zone]
+  end
+
+  subgraph DEV_ACC[dev account]
+    DEV_ZONE[couchto5kdev.phedigital.co.uk]
+    DEV_CDN[cdn.couchto5kdev.phedigital.co.uk]
+    ALB_DEV[Application Load Balancer - dev]
+    CF_DEV[CloudFront - dev]
+  end
+
+  subgraph STG_ACC[stg account]
+    STG_ZONE[couchto5kstg.phedigital.co.uk]
+    STG_CDN[cdn.couchto5kstg.phedigital.co.uk]
+    ALB_STG[Application Load Balancer - stg]
+    CF_STG[CloudFront - stg]
+  end
+
+  subgraph PRD_ACC[prd account]
+    PRD_ZONE[couchto5kprod.phedigital.co.uk]
+    PRD_CDN[cdn.couchto5kprod.phedigital.co.uk]
+    ALB_PRD[Application Load Balancer - prod]
+    CF_PRD[CloudFront - prod]
+  end
+
+  PHE --&gt;|NS| DEV_ZONE
+  PHE --&gt;|NS| STG_ZONE
+  PHE --&gt;|NS| PRD_ZONE
+
+  DEV_ZONE --&gt;|ALIAS| ALB_DEV
+  STG_ZONE --&gt;|ALIAS| ALB_STG
+  PRD_ZONE --&gt;|ALIAS| ALB_PRD
+
+  DEV_CDN --&gt;|ALIAS| CF_DEV
+  STG_CDN --&gt;|ALIAS| CF_STG
+  PRD_CDN --&gt;|ALIAS| CF_PRD
+</code></pre></div><p>If any hosted zone is recreated, update the corresponding NS records in the phe-prd root so delegation stays valid.</p>
+
+              <div data-module='page-expiry' data-last-reviewed-on="2026-07-16">
+    <div class='page-expiry--not-expired'>
+      This page was last reviewed on 29 January 2026.
+
+        It needs to be reviewed again on 16 July 2026
+.
+    </div>
+
+    <div class='page-expiry--expired'>
+      This page was set to be reviewed before 16 July 2026.
+      This might mean the content is out of date.
+    </div>
+  </div>
+
+          </main>
+
+          <aside>
+              <ul class="contribution-banner">
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/services/couch25k.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Couch+to+5K%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fservices%2Fcouch25k.html%29&amp;labels=bug&amp;title=Re%3A+%27Couch+to+5K%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
+              </ul>
+          </aside>
+
+          <footer class="govuk-footer app-footer" role="contentinfo">
+  <div class="govuk-footer__meta">
+    <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
+
+
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        class="govuk-footer__licence-logo"
+        xmlns="http://www.w3.org/2000/svg"
+        viewbox="0 0 483.2 195.7"
+        height="17"
+        width="41"
+      >
+        <path
+          fill="currentColor"
+          d="M421.5 142.8V.1l-50.7 32.3v161.1h112.4v-50.7zm-122.3-9.6A47.12 47.12 0 0 1 221 97.8c0-26 21.1-47.1 47.1-47.1 16.7 0 31.4 8.7 39.7 21.8l42.7-27.2A97.63 97.63 0 0 0 268.1 0c-36.5 0-68.3 20.1-85.1 49.7A98 98 0 0 0 97.8 0C43.9 0 0 43.9 0 97.8s43.9 97.8 97.8 97.8c36.5 0 68.3-20.1 85.1-49.7a97.76 97.76 0 0 0 149.6 25.4l19.4 22.2h3v-87.8h-80l24.3 27.5zM97.8 145c-26 0-47.1-21.1-47.1-47.1s21.1-47.1 47.1-47.1 47.2 21 47.2 47S123.8 145 97.8 145"
+        />
+      </svg>
+      <span class="govuk-footer__licence-description">
+        All content is available under the
+        <a
+          class="govuk-footer__link"
+          href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+          rel="license"
+        >Open Government Licence v3.0</a>, except where otherwise stated
+      </span>
+    </div>
+    <div class="govuk-footer__meta-item">
+      <a
+        class="govuk-footer__link govuk-footer__copyright-logo"
+        href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/"
+      >© Crown copyright</a>
+    </div>
+  </div>
+</footer>
+
+        </div>
+      </div>
+    </div>
+
+    
+    <script src="../../javascripts/application.js"></script>
+  </body>
+</html>
