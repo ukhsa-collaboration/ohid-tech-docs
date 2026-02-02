@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en" class="govuk-template no-js">
+  <head>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <title>Terraform Stacks - OHID Technical Documentation</title>
+
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
+
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/terraform-stacks.html">
+
+      <meta name="robots" content="noindex" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
+      <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta name="twitter:title" content="Terraform Stacks - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/terraform-stacks.html" />
+
+      <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta property="og:site_name" content="OHID Technical Documentation" />
+      <meta property="og:title" content="Terraform Stacks" />
+      <meta property="og:type" content="object" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/terraform-stacks.html" />
+
+    
+  </head>
+
+  <body class="govuk-template__body">
+    <script>document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');</script>
+
+    <div class="app-pane">
+      <div class="app-pane__header toc-open-disabled">
+        <a href="#content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+
+        <header class="govuk-header app-header" role="banner" data-module="govuk-header">
+  <div class="govuk-header__container govuk-header__container--full-width">
+    <div class="govuk-header__logo">
+      <a href="https://ukhsa-collaboration.github.io/ohid-tech-docs" class="govuk-header__link govuk-header__link--homepage">
+        <span class="govuk-header__product-name">
+          OHID Technical Documentation
+        </span>
+      </a>
+        <strong class="govuk-tag">internal</strong>
+    </div>
+    <div class="govuk-header__content">
+      <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
+        <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
+        <ul id="navigation" class="govuk-header__navigation-list">
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
+            </li>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
+            </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+      </div>
+
+        <div id="toc-heading" class="toc-show fixedsticky">
+          <button type="button" class="toc-show__label js-toc-show" aria-controls="toc">
+            Table of contents <span class="toc-show__icon"></span>
+          </button>
+        </div>
+
+      <div class="app-pane__body" data-module="in-page-navigation">
+          <div class="app-pane__toc">
+            <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
+  <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
+    <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
+    <label class="govuk-label search__label" for="search" aria-hidden="true">
+      Search (via Google)
+    </label>
+    <input
+      type="text"
+      id="search" name="q"
+      class="govuk-input govuk-!-margin-bottom-0 search__input"
+      aria-controls="search-results"
+      placeholder="Search">
+    <button type="submit" class="search__button">Search</button>
+  </form>
+</div>
+
+              <button type="button" class="toc__close js-toc-close" aria-controls="toc" aria-label="Hide table of contents"></button>
+              <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
+                      <ul>
+  <li>
+    <a href="#terraform-stacks"><span>Terraform Stacks</span></a>
+    <ul>
+      <li>
+      </li>
+      <li>
+        <a href="#faq"><span>FAQ</span></a>
+      </li>
+      <li>
+        <a href="#known-limitations-and-problems"><span>Known Limitations and Problems</span></a>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+
+              </nav>
+            </div>
+          </div>
+
+        <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
+          <main id="content" class="technical-documentation" data-module="anchored-headings">
+            <h1 id="terraform-stacks">Terraform Stacks</h1>
+<p>This guide describes how UKHSA organises Terraform into small, independently applied units (&ldquo;stacks&rdquo;) to keep changes safe and reviewable.</p>
+<h3 id="reference-implementation">Reference implementation</h3>
+<p>The <a href="https://github.com/ukhsa-collaboration/devops-terraform-example-project">devops-terraform-example-project</a> repository demonstrates a “good” example project structure which new services are encouraged to use as a starting point.</p>
+<h3 id="repository-organisation">Repository organisation</h3>
+<p>Monolithic Terraform states are avoided by splitting code into <em>stacks</em>. A stack is:
+- a directory that contains its own Terraform configuration
+- backed by its own remote state file
+- identified by the presence of a <code>dependencies.json</code> file
+- limited to two directory levels deep from the repo root (e.g. <code>./application/dependencies.json</code> or <code>./core-services/application/dependencies.json</code>)</p>
+<p>In the example below, <code>backend</code>, <code>database</code>, <code>network</code>, and <code>bootstrap</code> are stacks.</p>
+<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>├── applications
+│   ├── backend
+│   │   ├── backend.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   ├── backend.tf
+│   │   ├── tfvars
+│   │   │   ├── dev.tfvars
+│   │   │   ├── prd.tfvars
+│   │   │   └── uat.tfvars
+├── core-services
+│   ├── database
+│   │   ├── backend.tf
+│   │   ├── dependencies.json
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   └── variables.tf
+│   ├── network
+│   │   ├── backend.tf
+│   │   ├── dependencies.json
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   ├── tfvars
+│   │   │   ├── dev.tfvars
+│   │   │   ├── prd.tfvars
+│   │   │   └── uat.tfvars
+│   │   └── variables.tf
+│   ├── bootstrap
+│   │   ├── backend.tf
+│   │   ├── dependencies.json
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   ├── tfvars
+│   │   │   ├── dev.tfvars
+│   │   │   ├── prd.tfvars
+│   │   │   └── uat.tfvars
+│   │   └── variables.tf
+├── environment
+│   ├── dev.tfvars
+│   ├── prd.tfvars
+│   └── uat.tfvars
+├── globals.tfvars
+</code></pre></div><p>This modular approach aims to improve maintainability, makes changes easier to test and review, and reduce the blast radius of mistakes and bugs.</p>
+<h3 id="remote-state">Remote state</h3>
+<p>Remote state is configured by the Terraform CI/CD pipeline. Each stack still needs a minimal <code>backend.tf</code> so Terraform can initialise correctly.</p>
+<h3 id="required-stack-files">Required stack files</h3>
+<p>Each stack must include:
+- <code>backend.tf</code>
+- <code>providers.tf</code>
+- <code>terraform.tf</code></p>
+<p>Other files (e.g. <code>main.tf</code>, <code>variables.tf</code>, <code>outputs.tf</code>, <code>tfvars/</code>) are optional and used as needed.</p>
+<h3 id="variables">Variables</h3>
+<p>Variables can be set in three places:
+- <code>globals.tfvars</code> for shared values across all environments and stacks
+- <code>environment/&lt;environment&gt;.tfvars</code> for environment-level values
+- <code>&lt;stack&gt;/tfvars/&lt;environment&gt;.tfvars</code> for stack-specific overrides</p>
+<p>Keep defaults in <code>variables.tf</code> and use tfvars only for environment differences.</p>
+<p>Variable precedence is defined by CI/CD. Files are loaded in this order:
+1) <code>globals.tfvars</code>
+2) <code>&lt;stack&gt;/tfvars/&lt;environment&gt;.tfvars</code>
+3) <code>environment/&lt;environment&gt;.tfvars</code></p>
+<p>Later files override earlier ones.</p>
+<h3 id="dependencies-json">dependencies.json</h3>
+<p>Every stack must include a <code>dependencies.json</code>, even when there are no dependencies. The CI/CD pipeline discovers stacks by scanning for <code>dependencies.json</code> files up to two directories deep from the repo root.</p>
+<p>Minimum example:</p>
+<div class="highlight"><pre class="highlight json" tabindex="0"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"paths"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div><p>Full schema (fields are optional unless marked required):</p>
+<div class="highlight"><pre class="highlight json" tabindex="0"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"paths"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"./StackY"</span><span class="p">]</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"runner-label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ubuntu-latest"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"skip_when_destroying"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<ul>
+<li><code>dependencies.paths</code> is required and uses repo-root-relative paths.</li>
+<li><code>skip_when_destroying</code> can exclude a stack when destroying an environment.</li>
+<li><code>runner-label</code> is used to run on custom runners inside of Github Actions.</li>
+</ul>
+<h2 id="faq">FAQ</h2>
+<h3 id="how-should-i-organise-my-terraform-stacks">How should I organise my Terraform stacks?</h3>
+<p>There’s no one-size-fits-all approach to organising Terraform stacks. The goal is to strike a balance between reducing blast radius and keeping tightly coupled resources in the same stack to allow Terraform to manage dependencies more effectively.</p>
+<p>In general, try to group related infrastructure (e.g. networking, compute, storage) into standalone stacks, isolate application deployments into their own stacks (e.g. frontend, backend) unless they are very tightly coupled and avoid creating overly granular stacks that add complexity without meaningful isolation benefits.</p>
+<h3 id="i-have-a-stack-stack-x-that-depends-on-a-resource-in-another-stack-stack-y-how-do-i-ensure-that-the-resource-in-stack-x-gets-created-before-stack-y">I have a Stack (Stack X) that depends on a resource in another Stack (Stack Y). How do I ensure that the resource in Stack X gets created before Stack Y?</h3>
+<p>Use the <code>dependencies.json</code> file inside Stack X to declare Stack Y as a dependency. For example:</p>
+<div class="highlight"><pre class="highlight json" tabindex="0"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"paths"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"./StackY"</span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div><h3 id="how-should-stacks-access-resources-from-other-stacks">How should stacks access resources from other stacks?</h3>
+<p>Use data sources, not <code>terraform_remote_state</code>. This keeps stacks loosely coupled and avoids hidden dependencies.</p>
+<p>Example: if you create a Lambda in <code>applications/lambdas</code> and need to reference it from <code>applications/containers</code> (e.g. ECS), use a data source in the consuming stack:</p>
+<div class="highlight"><pre class="highlight hcl" tabindex="0"><code><span class="nx">data</span> <span class="s2">"aws_lambda_function"</span> <span class="s2">"app_lambda"</span> <span class="p">{</span>
+  <span class="nx">function_name</span> <span class="p">=</span> <span class="nx">local</span><span class="err">.</span><span class="nx">lambda_name</span>
+<span class="p">}</span>
+</code></pre></div><h3 id="what-does-backend-bootstrapping-involve">What does backend bootstrapping involve?</h3>
+<p>Bootstrapping typically means creating a stack (often named <code>bootstrap</code>) that provisions the OIDC role GitHub Actions uses to run Terraform. That stack must be applied locally once per environment/account before CI/CD can take over.</p>
+<h2 id="known-limitations-and-problems">Known Limitations and Problems</h2>
+
+<ul>
+<li>If you add a new dependency after a stack has already been created (e.g. Stack X now depends on Stack Y for a data lookup), the next Terraform plan may fail because the lookup cannot resolve until Stack Y is applied.</li>
+<li>Changing stack boundaries is disruptive so if you later decide to split or merge stacks, you often need to perform &ldquo;state surgery&rdquo; on resources in state (terraform state mv) to avoid recreation. This is error-prone and time-consuming.</li>
+<li>Stacks must form a directed acyclic graph which means circular dependencies (e.g. Stack A depends on Stack B, which depends on Stack A) cannot be resolved automatically and must be redesigned.</li>
+<li>Backend bootstrapping needs to be done locally before CI/CD can take over.</li>
+<li>Each Stack introduces additional overhead because each job requires Terraform to be init&rsquo;d, Python to be installed, etc.</li>
+</ul>
+
+              <div data-module='page-expiry' data-last-reviewed-on="2026-07-16">
+    <div class='page-expiry--not-expired'>
+      This page was last reviewed on 29 January 2026.
+
+        It needs to be reviewed again on 16 July 2026
+.
+    </div>
+
+    <div class='page-expiry--expired'>
+      This page was set to be reviewed before 16 July 2026.
+      This might mean the content is out of date.
+    </div>
+  </div>
+
+          </main>
+
+          <aside>
+              <ul class="contribution-banner">
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/guides/terraform-stacks.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Terraform+Stacks%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fguides%2Fterraform-stacks.html%29&amp;labels=bug&amp;title=Re%3A+%27Terraform+Stacks%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
+              </ul>
+          </aside>
+
+          <footer class="govuk-footer app-footer" role="contentinfo">
+  <div class="govuk-footer__meta">
+    <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
+
+
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        class="govuk-footer__licence-logo"
+        xmlns="http://www.w3.org/2000/svg"
+        viewbox="0 0 483.2 195.7"
+        height="17"
+        width="41"
+      >
+        <path
+          fill="currentColor"
+          d="M421.5 142.8V.1l-50.7 32.3v161.1h112.4v-50.7zm-122.3-9.6A47.12 47.12 0 0 1 221 97.8c0-26 21.1-47.1 47.1-47.1 16.7 0 31.4 8.7 39.7 21.8l42.7-27.2A97.63 97.63 0 0 0 268.1 0c-36.5 0-68.3 20.1-85.1 49.7A98 98 0 0 0 97.8 0C43.9 0 0 43.9 0 97.8s43.9 97.8 97.8 97.8c36.5 0 68.3-20.1 85.1-49.7a97.76 97.76 0 0 0 149.6 25.4l19.4 22.2h3v-87.8h-80l24.3 27.5zM97.8 145c-26 0-47.1-21.1-47.1-47.1s21.1-47.1 47.1-47.1 47.2 21 47.2 47S123.8 145 97.8 145"
+        />
+      </svg>
+      <span class="govuk-footer__licence-description">
+        All content is available under the
+        <a
+          class="govuk-footer__link"
+          href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+          rel="license"
+        >Open Government Licence v3.0</a>, except where otherwise stated
+      </span>
+    </div>
+    <div class="govuk-footer__meta-item">
+      <a
+        class="govuk-footer__link govuk-footer__copyright-logo"
+        href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/"
+      >© Crown copyright</a>
+    </div>
+  </div>
+</footer>
+
+        </div>
+      </div>
+    </div>
+
+    
+    <script src="../../javascripts/application.js"></script>
+  </body>
+</html>
