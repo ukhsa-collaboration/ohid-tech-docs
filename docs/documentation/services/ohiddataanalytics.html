@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>Service Support - OHID Technical Documentation</title>
+    <title>OHID Data Analytics - OHID Technical Documentation</title>
 
     <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/ohiddataanalytics.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="Service Support - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/" />
+      <meta name="twitter:title" content="OHID Data Analytics - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/ohiddataanalytics.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="Service Support" />
+      <meta property="og:title" content="OHID Data Analytics" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/services/ohiddataanalytics.html" />
 
     
   </head>
@@ -91,7 +91,12 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#service-support"><span>Service Support</span></a>
+    <a href="#ohid-data-analytics"><span>OHID Data Analytics</span></a>
+    <ul>
+      <li>
+        <a href="#components"><span>Components</span></a>
+      </li>
+    </ul>
   </li>
 </ul>
 
@@ -102,26 +107,42 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="service-support">Service Support</h1>
+            <h1 id="ohid-data-analytics">OHID Data Analytics</h1>
+<p>OHID Data Analytics uses Databricks to analyse analytics sent from the mobile apps.</p>
+<h2 id="components">Components</h2>
+<h3 id="applications">Applications</h3>
 
 <ul>
-<li><a href="active10.html">Active 10</a></li>
-<li><a href="couch25k.html">Couch to 5K</a></li>
-<li><a href="wlp.html">Weight Loss Plan</a></li>
-<li><a href="fs.html">Food Scanner</a></li>
-<li><a href="sfd.html">Quit Smoking</a></li>
-<li><a href="talktofrank.html">Talk to Frank</a></li>
-<li><a href="dfd.html">Drink Free Days</a></li>
-<li><a href="ohiddataanalytics.html">OHID Data Analytics</a></li>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/ohid-gcp-data-sync-aws">ohid-gcp-data-sync-aws</a></li>
+<li>AWS Lambda functions used to sync data from GCP to AWS S3. </li>
+</ul>
+<h3 id="infrastructure-as-code-iac">Infrastructure as Code (IaC)</h3>
+
+<ul>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/ohid-data-analytics-iac">ohid-data-analytics-iac</a></li>
+<li>Terraform code defining AWS infrastructure for all environments.</li>
 </ul>
 
-            
+              <div data-module='page-expiry' data-last-reviewed-on="2026-07-16">
+    <div class='page-expiry--not-expired'>
+      This page was last reviewed on 29 January 2026.
+
+        It needs to be reviewed again on 16 July 2026
+.
+    </div>
+
+    <div class='page-expiry--expired'>
+      This page was set to be reviewed before 16 July 2026.
+      This might mean the content is out of date.
+    </div>
+  </div>
+
           </main>
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/services/index.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Service+Support%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fservices%2F%29&amp;labels=bug&amp;title=Re%3A+%27Service+Support%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/services/ohiddataanalytics.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27OHID+Data+Analytics%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fservices%2Fohiddataanalytics.html%29&amp;labels=bug&amp;title=Re%3A+%27OHID+Data+Analytics%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>
