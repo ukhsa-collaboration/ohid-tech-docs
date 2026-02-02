@@ -1,0 +1,168 @@
+---
+title: Terraform Stacks
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+This guide describes how UKHSA organises Terraform into small, independently applied units ("stacks") to keep changes safe and reviewable.
+
+### Reference implementation
+
+The [devops-terraform-example-project](https://github.com/ukhsa-collaboration/devops-terraform-example-project) repository demonstrates a “good” example project structure which new services are encouraged to use as a starting point.
+
+### Repository organisation
+Monolithic Terraform states are avoided by splitting code into _stacks_. A stack is:
+- a directory that contains its own Terraform configuration
+- backed by its own remote state file
+- identified by the presence of a `dependencies.json` file
+- limited to two directory levels deep from the repo root (e.g. `./application/dependencies.json` or `./core-services/application/dependencies.json`)
+
+In the example below, `backend`, `database`, `network`, and `bootstrap` are stacks.
+
+```.
+├── applications
+│   ├── backend
+│   │   ├── backend.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   ├── backend.tf
+│   │   ├── tfvars
+│   │   │   ├── dev.tfvars
+│   │   │   ├── prd.tfvars
+│   │   │   └── uat.tfvars
+├── core-services
+│   ├── database
+│   │   ├── backend.tf
+│   │   ├── dependencies.json
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   └── variables.tf
+│   ├── network
+│   │   ├── backend.tf
+│   │   ├── dependencies.json
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   ├── tfvars
+│   │   │   ├── dev.tfvars
+│   │   │   ├── prd.tfvars
+│   │   │   └── uat.tfvars
+│   │   └── variables.tf
+│   ├── bootstrap
+│   │   ├── backend.tf
+│   │   ├── dependencies.json
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tf
+│   │   ├── tfvars
+│   │   │   ├── dev.tfvars
+│   │   │   ├── prd.tfvars
+│   │   │   └── uat.tfvars
+│   │   └── variables.tf
+├── environment
+│   ├── dev.tfvars
+│   ├── prd.tfvars
+│   └── uat.tfvars
+├── globals.tfvars
+```
+
+This modular approach aims to improve maintainability, makes changes easier to test and review, and reduce the blast radius of mistakes and bugs.
+
+### Remote state
+Remote state is configured by the Terraform CI/CD pipeline. Each stack still needs a minimal `backend.tf` so Terraform can initialise correctly.
+
+### Required stack files
+Each stack must include:
+- `backend.tf`
+- `providers.tf`
+- `terraform.tf`
+
+Other files (e.g. `main.tf`, `variables.tf`, `outputs.tf`, `tfvars/`) are optional and used as needed.
+
+### Variables
+Variables can be set in three places:
+- `globals.tfvars` for shared values across all environments and stacks
+- `environment/<environment>.tfvars` for environment-level values
+- `<stack>/tfvars/<environment>.tfvars` for stack-specific overrides
+
+Keep defaults in `variables.tf` and use tfvars only for environment differences.
+
+Variable precedence is defined by CI/CD. Files are loaded in this order:
+1) `globals.tfvars`
+2) `<stack>/tfvars/<environment>.tfvars`
+3) `environment/<environment>.tfvars`
+
+Later files override earlier ones.
+
+### dependencies.json
+Every stack must include a `dependencies.json`, even when there are no dependencies. The CI/CD pipeline discovers stacks by scanning for `dependencies.json` files up to two directories deep from the repo root.
+
+Minimum example:
+
+```json
+{
+    "dependencies": {
+        "paths": []
+    }
+}
+```
+
+Full schema (fields are optional unless marked required):
+
+```json
+{
+    "dependencies": {
+        "paths": ["./StackY"]
+    },
+    "runner-label": "ubuntu-latest",
+    "skip_when_destroying": false
+}
+```
+
+- `dependencies.paths` is required and uses repo-root-relative paths.
+- `skip_when_destroying` can exclude a stack when destroying an environment.
+- `runner-label` is used to run on custom runners inside of Github Actions.
+
+## FAQ
+
+### How should I organise my Terraform stacks?
+There’s no one-size-fits-all approach to organising Terraform stacks. The goal is to strike a balance between reducing blast radius and keeping tightly coupled resources in the same stack to allow Terraform to manage dependencies more effectively.
+
+In general, try to group related infrastructure (e.g. networking, compute, storage) into standalone stacks, isolate application deployments into their own stacks (e.g. frontend, backend) unless they are very tightly coupled and avoid creating overly granular stacks that add complexity without meaningful isolation benefits.
+
+### I have a Stack (Stack X) that depends on a resource in another Stack (Stack Y). How do I ensure that the resource in Stack X gets created before Stack Y?
+Use the `dependencies.json` file inside Stack X to declare Stack Y as a dependency. For example:
+
+```json
+{
+    "dependencies": {
+        "paths": ["./StackY"]
+    }
+}
+```
+
+### How should stacks access resources from other stacks?
+Use data sources, not `terraform_remote_state`. This keeps stacks loosely coupled and avoids hidden dependencies.
+
+Example: if you create a Lambda in `applications/lambdas` and need to reference it from `applications/containers` (e.g. ECS), use a data source in the consuming stack:
+
+```hcl
+data "aws_lambda_function" "app_lambda" {
+  function_name = local.lambda_name
+}
+```
+
+### What does backend bootstrapping involve?
+Bootstrapping typically means creating a stack (often named `bootstrap`) that provisions the OIDC role GitHub Actions uses to run Terraform. That stack must be applied locally once per environment/account before CI/CD can take over.
+
+## Known Limitations and Problems
+
+- If you add a new dependency after a stack has already been created (e.g. Stack X now depends on Stack Y for a data lookup), the next Terraform plan may fail because the lookup cannot resolve until Stack Y is applied.
+- Changing stack boundaries is disruptive so if you later decide to split or merge stacks, you often need to perform "state surgery" on resources in state (terraform state mv) to avoid recreation. This is error-prone and time-consuming.
+- Stacks must form a directed acyclic graph which means circular dependencies (e.g. Stack A depends on Stack B, which depends on Stack A) cannot be resolved automatically and must be redesigned.
+- Backend bootstrapping needs to be done locally before CI/CD can take over.
+- Each Stack introduces additional overhead because each job requires Terraform to be init'd, Python to be installed, etc.
