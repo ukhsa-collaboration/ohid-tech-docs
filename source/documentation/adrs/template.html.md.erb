@@ -1,0 +1,49 @@
+---
+title: ADR Template
+last_reviewed_on: 2026-02-03
+review_in: 12 months
+---
+
+# <%= current_page.data.title %>
+
+Use this template when recording architectural decisions for OHID services and platforms.
+
+## Template
+
+```markdown
+# ADR-XXX: <short decision title>
+
+- Status: Proposed | Accepted | Rejected | Superseded
+- Date: YYYY-MM-DD
+- Deciders: <names or team>
+
+## Context
+
+What is the context for this decision? What problem are we trying to solve?
+Include constraints, drivers, and assumptions.
+
+## Decision
+
+What is the change we are making? Be clear and specific.
+
+## Alternatives Considered
+
+- <alternative 1 and why it was not chosen>
+- <alternative 2 and why it was not chosen>
+
+## Consequences
+
+What becomes easier or harder because of this decision?
+Include operational, security, and cost impacts where relevant.
+
+## References
+
+- <links to designs, RFCs, diagrams, PRs, or other ADRs>
+```
+
+## Guidance
+
+- Keep ADRs short and specific to a single decision.
+- Use `ADR-XXX` as the filename prefix, for example `ADR-012-use-rds-proxy.md`.
+- Store ADRs in `source/documentation/adrs/`.
+- If an ADR is superseded, add a link to the new ADR in the old one.
