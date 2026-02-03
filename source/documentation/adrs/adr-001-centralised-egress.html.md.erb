@@ -1,0 +1,64 @@
+---
+title: ADR-001 Centralised egress
+---
+
+# <%= current_page.data.title %>
+
+- Status: Proposed
+- Date: 2026-02-03
+- Deciders: OHID Platform Team
+
+## Context
+
+We currently operate separate NAT gateways per service and environment. With 7 services and 7 NAT gateways per service (3 for production, 3 for staging, 1 for development), that is 49 NAT gateways in total. This increases cost and creates duplicated infrastructure.
+
+We also want to enable service-to-service connectivity and a centralised Network Firewall in future, which is best supported by a shared network foundation and a transit gateway.
+
+## Decision
+
+Create a centralised egress VPC per environment that hosts shared NAT gateways and egress controls. Route service VPCs to the centralised egress VPC for outbound internet access. Establish a transit gateway to support this routing and to enable future service-to-service traffic.
+
+## Alternatives Considered
+
+- Keep per-service NAT gateways.
+  - Rejected because it sustains unnecessary cost and duplicated operational work.
+- Centralise only for production.
+  - Rejected because it leaves staging and development with the same cost and complexity, and fragments the network design.
+
+## Consequences
+
+- Reduced NAT gateway count and cost by consolidating per environment.
+- Added dependency on shared network components; failures or misconfiguration could impact multiple services.
+- Additional work required to design routing, monitoring, and change control for shared egress.
+- Lays groundwork for service-to-service connectivity and centralised Network Firewall controls over the transit gateway.
+
+## Costs (excluding per-GB)
+
+Rates (eu-west-2):
+
+- NAT Gateway: $0.050 per NAT Gateway hour.
+- Transit Gateway VPC attachment: $0.060 per attachment hour.
+
+Current model:
+
+- 49 NAT Gateways * $0.050/hr = $2.45/hr
+- Monthly (730 hrs): $1,788.50/mo
+
+Centralised egress + TGW model:
+
+- NAT Gateways: 7 * $0.050/hr = $0.35/hr
+- TGW VPC attachments: 24 * $0.060/hr = $1.44/hr
+- Total: $1.79/hr
+- Monthly (730 hrs): $1,306.70/mo
+
+Estimated savings (hourly-only, excluding per-GB):
+
+- $0.66/hr
+- $481.80/mo
+
+Assumptions:
+
+- 7 services, each with prod, staging, dev VPCs = 21 service VPCs.
+- 3 egress VPCs (one per environment).
+- One TGW attachment per VPC = 24 attachments total.
+- 730 hours per month.
