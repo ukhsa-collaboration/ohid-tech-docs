@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>UKHSA-OHID Technical Guidance - OHID Technical Documentation</title>
+    <title>ADR-001 Centralised egress - OHID Technical Documentation</title>
 
-    <link href="stylesheets/manifest.css" rel="stylesheet" />
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/adrs/adr-001-centralised-egress.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="UKHSA-OHID Technical Guidance - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/" />
+      <meta name="twitter:title" content="ADR-001 Centralised egress - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/adrs/adr-001-centralised-egress.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="UKHSA-OHID Technical Guidance" />
+      <meta property="og:title" content="ADR-001 Centralised egress" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/adrs/adr-001-centralised-egress.html" />
 
     
   </head>
@@ -48,8 +48,8 @@
       <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
         <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
         <ul id="navigation" class="govuk-header__navigation-list">
-            <li class="govuk-header__navigation-item govuk-header__navigation-item--active">
-              <a class="govuk-header__link" href="./">Home</a>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
             </li>
             <li class="govuk-header__navigation-item">
               <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
@@ -71,7 +71,7 @@
       <div class="app-pane__body" data-module="in-page-navigation">
           <div class="app-pane__toc">
             <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
-              <div class="search" data-module="search" data-path-to-site-root="./">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
   <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
     <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
     <label class="govuk-label search__label" for="search" aria-hidden="true">
@@ -91,25 +91,22 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#ukhsa-ohid-technical-guidance"><span>UKHSA-OHID Technical Guidance</span></a>
+    <a href="#adr-001-centralised-egress"><span>ADR-001 Centralised egress</span></a>
     <ul>
       <li>
-        <a href="#who-is-this-documentation-for"><span>Who is this documentation for?</span></a>
+        <a href="#context"><span>Context</span></a>
       </li>
       <li>
-        <a href="#getting-started"><span>Getting Started</span></a>
+        <a href="#decision"><span>Decision</span></a>
       </li>
       <li>
-        <a href="#guides"><span>Guides</span></a>
+        <a href="#alternatives-considered"><span>Alternatives Considered</span></a>
       </li>
       <li>
-        <a href="#architectural-decision-records"><span>Architectural Decision Records</span></a>
+        <a href="#consequences"><span>Consequences</span></a>
       </li>
       <li>
-        <a href="#services"><span>Services</span></a>
-      </li>
-      <li>
-        <a href="#aws-setup"><span>AWS Setup</span></a>
+        <a href="#costs-excluding-per-gb"><span>Costs (excluding per-GB)</span></a>
       </li>
     </ul>
   </li>
@@ -122,68 +119,83 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="ukhsa-ohid-technical-guidance">UKHSA-OHID Technical Guidance</h1>
-<h2 id="who-is-this-documentation-for">Who is this documentation for?</h2>
-<p>This is the technical documentation for the developers and DevOps engineers working on the UKHSA-supported OHID mobile applications and services.</p>
-<h2 id="getting-started">Getting Started</h2>
+            <h1 id="adr-001-centralised-egress">ADR-001 Centralised egress</h1>
 
 <ul>
-<li><a href="documentation/guides/get_started.html">Getting Started</a></li>
+<li>Status: Proposed</li>
+<li>Date: 2026-02-03</li>
+<li>Deciders: OHID Platform Team</li>
 </ul>
-<h2 id="guides">Guides</h2>
+<h2 id="context">Context</h2>
+<p>We currently operate separate NAT gateways per service and environment. With 7 services and 7 NAT gateways per service (3 for production, 3 for staging, 1 for development), that is 49 NAT gateways in total. This increases cost and creates duplicated infrastructure.</p>
+<p>We also want to enable service-to-service connectivity and a centralised Network Firewall in future, which is best supported by a shared network foundation and a transit gateway.</p>
+<h2 id="decision">Decision</h2>
+<p>Create a centralised egress VPC per environment that hosts shared NAT gateways and egress controls. Route service VPCs to the centralised egress VPC for outbound internet access. Establish a transit gateway to support this routing and to enable future service-to-service traffic.</p>
+<h2 id="alternatives-considered">Alternatives Considered</h2>
 
 <ul>
-<li><a href="documentation/guides/application-deployment-workflow.html">Application deployment workflow</a></li>
-<li><a href="documentation/guides/standard-pattern.html">Standard mobile app architecture pattern</a></li>
-<li><a href="documentation/guides/database-access.html">Accessing databases</a></li>
-<li><a href="documentation/guides/terraform-stacks.html">Terraform</a></li>
-</ul>
-<h2 id="architectural-decision-records">Architectural Decision Records</h2>
+<li>Keep per-service NAT gateways.
 
 <ul>
-<li><a href="documentation/adrs/">ADRs</a></li>
-</ul>
-<h2 id="services">Services</h2>
+<li>Rejected because it sustains unnecessary cost and duplicated operational work.</li>
+</ul></li>
+<li>Centralise only for production.
 
 <ul>
-<li><a href="documentation/services/active10.html">Active 10</a></li>
-<li><a href="documentation/services/couch25k.html">Couch to 5K</a></li>
-<li><a href="documentation/services/wlp.html">Weight Loss Plan</a></li>
-<li><a href="documentation/services/fs.html">Food Scanner</a></li>
-<li><a href="documentation/services/sfd.html">Quit Smoking</a></li>
-<li><a href="documentation/services/talktofrank.html">Talk to Frank</a></li>
-<li><a href="documentation/services/dfd.html">Drink Free Days</a></li>
-<li><a href="documentation/services/aihc.html">AI Health Coach</a></li>
-<li><a href="documentation/services/ohiddataanalytics.html">OHID Data Analytics</a></li>
+<li>Rejected because it leaves staging and development with the same cost and complexity, and fragments the network design.</li>
+</ul></li>
 </ul>
-<h2 id="aws-setup">AWS Setup</h2>
+<h2 id="consequences">Consequences</h2>
 
 <ul>
-<li><a href="documentation/aws/access.html">AWS Access</a></li>
-<li><a href="documentation/aws/account-structure.html">AWS Account Structure</a></li>
-<li><a href="documentation/aws/centralised-backups.html">AWS Centralised Backups</a></li>
+<li>Reduced NAT gateway count and cost by consolidating per environment.</li>
+<li>Added dependency on shared network components; failures or misconfiguration could impact multiple services.</li>
+<li>Additional work required to design routing, monitoring, and change control for shared egress.</li>
+<li>Lays groundwork for service-to-service connectivity and centralised Network Firewall controls over the transit gateway.</li>
+</ul>
+<h2 id="costs-excluding-per-gb">Costs (excluding per-GB)</h2>
+<p>Rates (eu-west-2):</p>
+
+<ul>
+<li>NAT Gateway: $0.050 per NAT Gateway hour.</li>
+<li>Transit Gateway VPC attachment: $0.060 per attachment hour.</li>
+</ul>
+<p>Current model:</p>
+
+<ul>
+<li>49 NAT Gateways * $0.050/hr = $2.45/hr</li>
+<li>Monthly (730 hrs): $1,788.50/mo</li>
+</ul>
+<p>Centralised egress + TGW model:</p>
+
+<ul>
+<li>NAT Gateways: 7 * $0.050/hr = $0.35/hr</li>
+<li>TGW VPC attachments: 24 * $0.060/hr = $1.44/hr</li>
+<li>Total: $1.79/hr</li>
+<li>Monthly (730 hrs): $1,306.70/mo</li>
+</ul>
+<p>Estimated savings (hourly-only, excluding per-GB):</p>
+
+<ul>
+<li>$0.66/hr</li>
+<li>$481.80/mo</li>
+</ul>
+<p>Assumptions:</p>
+
+<ul>
+<li>7 services, each with prod, staging, dev VPCs = 21 service VPCs.</li>
+<li>3 egress VPCs (one per environment).</li>
+<li>One TGW attachment per VPC = 24 attachments total.</li>
+<li>730 hours per month.</li>
 </ul>
 
-              <div data-module='page-expiry' data-last-reviewed-on="2027-01-29">
-    <div class='page-expiry--not-expired'>
-      This page was last reviewed on 29 January 2026.
-
-        It needs to be reviewed again on 29 January 2027
-.
-    </div>
-
-    <div class='page-expiry--expired'>
-      This page was set to be reviewed before 29 January 2027.
-      This might mean the content is out of date.
-    </div>
-  </div>
-
+            
           </main>
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/index.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27UKHSA-OHID+Technical+Guidance%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2F%29&amp;labels=bug&amp;title=Re%3A+%27UKHSA-OHID+Technical+Guidance%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/adrs/adr-001-centralised-egress.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27ADR-001+Centralised+egress%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fadrs%2Fadr-001-centralised-egress.html%29&amp;labels=bug&amp;title=Re%3A+%27ADR-001+Centralised+egress%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>
@@ -230,6 +242,6 @@
     </div>
 
     
-    <script src="javascripts/application.js"></script>
+    <script src="../../javascripts/application.js"></script>
   </body>
 </html>

@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>UKHSA-OHID Technical Guidance - OHID Technical Documentation</title>
+    <title>ADR Template - OHID Technical Documentation</title>
 
-    <link href="stylesheets/manifest.css" rel="stylesheet" />
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/adrs/template.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="UKHSA-OHID Technical Guidance - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/" />
+      <meta name="twitter:title" content="ADR Template - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/adrs/template.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="UKHSA-OHID Technical Guidance" />
+      <meta property="og:title" content="ADR Template" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/adrs/template.html" />
 
     
   </head>
@@ -48,8 +48,8 @@
       <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
         <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
         <ul id="navigation" class="govuk-header__navigation-list">
-            <li class="govuk-header__navigation-item govuk-header__navigation-item--active">
-              <a class="govuk-header__link" href="./">Home</a>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
             </li>
             <li class="govuk-header__navigation-item">
               <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
@@ -71,7 +71,7 @@
       <div class="app-pane__body" data-module="in-page-navigation">
           <div class="app-pane__toc">
             <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
-              <div class="search" data-module="search" data-path-to-site-root="./">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
   <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
     <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
     <label class="govuk-label search__label" for="search" aria-hidden="true">
@@ -91,25 +91,13 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#ukhsa-ohid-technical-guidance"><span>UKHSA-OHID Technical Guidance</span></a>
+    <a href="#adr-template"><span>ADR Template</span></a>
     <ul>
       <li>
-        <a href="#who-is-this-documentation-for"><span>Who is this documentation for?</span></a>
+        <a href="#template"><span>Template</span></a>
       </li>
       <li>
-        <a href="#getting-started"><span>Getting Started</span></a>
-      </li>
-      <li>
-        <a href="#guides"><span>Guides</span></a>
-      </li>
-      <li>
-        <a href="#architectural-decision-records"><span>Architectural Decision Records</span></a>
-      </li>
-      <li>
-        <a href="#services"><span>Services</span></a>
-      </li>
-      <li>
-        <a href="#aws-setup"><span>AWS Setup</span></a>
+        <a href="#guidance"><span>Guidance</span></a>
       </li>
     </ul>
   </li>
@@ -122,58 +110,56 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="ukhsa-ohid-technical-guidance">UKHSA-OHID Technical Guidance</h1>
-<h2 id="who-is-this-documentation-for">Who is this documentation for?</h2>
-<p>This is the technical documentation for the developers and DevOps engineers working on the UKHSA-supported OHID mobile applications and services.</p>
-<h2 id="getting-started">Getting Started</h2>
+            <h1 id="adr-template">ADR Template</h1>
+<p>Use this template when recording architectural decisions for OHID services and platforms.</p>
+<h2 id="template">Template</h2>
+<div class="highlight"><pre class="highlight markdown" tabindex="0"><code><span class="gh"># ADR-XXX: &lt;short decision title&gt;</span>
+<span class="p">
+-</span> Status: Proposed | Accepted | Rejected | Superseded
+<span class="p">-</span> Date: YYYY-MM-DD
+<span class="p">-</span> Deciders: <span class="nt">&lt;names</span> <span class="na">or</span> <span class="na">team</span><span class="nt">&gt;</span>
+
+<span class="gu">## Context</span>
+
+What is the context for this decision? What problem are we trying to solve?
+Include constraints, drivers, and assumptions.
+
+<span class="gu">## Decision</span>
+
+What is the change we are making? Be clear and specific.
+
+<span class="gu">## Alternatives Considered</span>
+<span class="p">
+-</span> <span class="nt">&lt;alternative</span> <span class="err">1</span> <span class="na">and</span> <span class="na">why</span> <span class="na">it</span> <span class="na">was</span> <span class="na">not</span> <span class="na">chosen</span><span class="nt">&gt;</span>
+<span class="p">-</span> <span class="nt">&lt;alternative</span> <span class="err">2</span> <span class="na">and</span> <span class="na">why</span> <span class="na">it</span> <span class="na">was</span> <span class="na">not</span> <span class="na">chosen</span><span class="nt">&gt;</span>
+
+<span class="gu">## Consequences</span>
+
+What becomes easier or harder because of this decision?
+Include operational, security, and cost impacts where relevant.
+
+<span class="gu">## References</span>
+<span class="p">
+-</span> <span class="nt">&lt;links</span> <span class="na">to</span> <span class="na">designs</span><span class="err">,</span> <span class="na">RFCs</span><span class="err">,</span> <span class="na">diagrams</span><span class="err">,</span> <span class="na">PRs</span><span class="err">,</span> <span class="na">or</span> <span class="na">other</span> <span class="na">ADRs</span><span class="nt">&gt;</span>
+</code></pre></div><h2 id="guidance">Guidance</h2>
 
 <ul>
-<li><a href="documentation/guides/get_started.html">Getting Started</a></li>
-</ul>
-<h2 id="guides">Guides</h2>
-
-<ul>
-<li><a href="documentation/guides/application-deployment-workflow.html">Application deployment workflow</a></li>
-<li><a href="documentation/guides/standard-pattern.html">Standard mobile app architecture pattern</a></li>
-<li><a href="documentation/guides/database-access.html">Accessing databases</a></li>
-<li><a href="documentation/guides/terraform-stacks.html">Terraform</a></li>
-</ul>
-<h2 id="architectural-decision-records">Architectural Decision Records</h2>
-
-<ul>
-<li><a href="documentation/adrs/">ADRs</a></li>
-</ul>
-<h2 id="services">Services</h2>
-
-<ul>
-<li><a href="documentation/services/active10.html">Active 10</a></li>
-<li><a href="documentation/services/couch25k.html">Couch to 5K</a></li>
-<li><a href="documentation/services/wlp.html">Weight Loss Plan</a></li>
-<li><a href="documentation/services/fs.html">Food Scanner</a></li>
-<li><a href="documentation/services/sfd.html">Quit Smoking</a></li>
-<li><a href="documentation/services/talktofrank.html">Talk to Frank</a></li>
-<li><a href="documentation/services/dfd.html">Drink Free Days</a></li>
-<li><a href="documentation/services/aihc.html">AI Health Coach</a></li>
-<li><a href="documentation/services/ohiddataanalytics.html">OHID Data Analytics</a></li>
-</ul>
-<h2 id="aws-setup">AWS Setup</h2>
-
-<ul>
-<li><a href="documentation/aws/access.html">AWS Access</a></li>
-<li><a href="documentation/aws/account-structure.html">AWS Account Structure</a></li>
-<li><a href="documentation/aws/centralised-backups.html">AWS Centralised Backups</a></li>
+<li>Keep ADRs short and specific to a single decision.</li>
+<li>Use <code>ADR-XXX</code> as the filename prefix, for example <code>ADR-012-use-rds-proxy.md</code>.</li>
+<li>Store ADRs in <code>source/documentation/adrs/</code>.</li>
+<li>If an ADR is superseded, add a link to the new ADR in the old one.</li>
 </ul>
 
-              <div data-module='page-expiry' data-last-reviewed-on="2027-01-29">
+              <div data-module='page-expiry' data-last-reviewed-on="2027-02-03">
     <div class='page-expiry--not-expired'>
-      This page was last reviewed on 29 January 2026.
+      This page was last reviewed on 3 February 2026.
 
-        It needs to be reviewed again on 29 January 2027
+        It needs to be reviewed again on 3 February 2027
 .
     </div>
 
     <div class='page-expiry--expired'>
-      This page was set to be reviewed before 29 January 2027.
+      This page was set to be reviewed before 3 February 2027.
       This might mean the content is out of date.
     </div>
   </div>
@@ -182,8 +168,8 @@
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/index.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27UKHSA-OHID+Technical+Guidance%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2F%29&amp;labels=bug&amp;title=Re%3A+%27UKHSA-OHID+Technical+Guidance%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/adrs/template.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27ADR+Template%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fadrs%2Ftemplate.html%29&amp;labels=bug&amp;title=Re%3A+%27ADR+Template%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>
@@ -230,6 +216,6 @@
     </div>
 
     
-    <script src="javascripts/application.js"></script>
+    <script src="../../javascripts/application.js"></script>
   </body>
 </html>
