@@ -1,0 +1,57 @@
+---
+title: AWS Networking
+parent: OHID AWS Landing Zone
+nav_order: 3
+---
+
+# <%= current_page.data.title %>
+
+## Account specific
+
+Account networking is created and managed by Terraform inside each workload account. The common result is one VPC per account with at least public and private subnets across multiple availability zones.
+
+When creating a new account:
+
+- Keep CIDR ranges non-overlapping by default.
+- Size CIDR ranges for realistic growth: avoid allocations that are so small they block expansion, but avoid over-allocating very large ranges unnecessarily.
+- Leave headroom for future service growth.
+- Enable flow logs on your VPC and ship them to the Log Archive account.
+
+As the estate grows, moving CIDR management to AWS IPAM should reduce manual coordination and the risk of overlap.
+
+## Egress
+
+Except for VPC endpoints, egress traffic originating from private subnets is routed over a Transit Gateway attachment and into the Networking account where it uses the Networking account's NAT gateways to reach the Internet.
+
+Where possible, use VPC endpoints for AWS services (for example S3) so traffic does not need to traverse NAT.
+
+Transit Gateway is not in the datapath for normal internet ingress and response traffic (See Ingress section below).
+
+### Architecture
+
+![Diagram of centralised egress](/images/aws-centralised-egress-diagram.png)
+
+## Ingress
+
+Unlike internet egress, service accounts take a decentralised approach to ingress and expose entry points at individual account level.
+
+Ingress flow differs slightly by entry point:
+
+- `ALB` pattern: client traffic enters via the VPC Internet Gateway and is terminated at the ALB. The ALB then opens a new connection to the target in private subnets (for example ECS tasks). Response traffic returns to the ALB and then back to the client through the Internet Gateway.
+- `API Gateway` pattern: TLS is terminated by API Gateway at the edge/regional service layer. API Gateway then invokes the backend integration (for example Lambda)
+
+
+Standard expectations:
+
+- Keep application compute/data planes in private subnets.
+- Use ALB + AWS WAF as the default ingress pattern for public-facing services.
+- Use API Gateway for API-first services where its features are needed (for example request validation, authorizers, usage plans, or throttling controls).
+- If NLB is required, document the rationale and apply compensating controls because WAF cannot be attached directly to NLB.
+- Restrict inbound ports and source ranges with security groups.
+- Keep DNS and certificate ownership explicit per service/environment.
+- Default to one ALB per account; only add more where there is a clear operational or security reason.
+- Access to databases should always be through SSM and through SSH tunnels.
+
+## Additional reading
+- https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/using-nat-gateway-for-centralized-egress.html
+- https://docs.aws.amazon.com/prescriptive-guidance/latest/transitioning-to-multiple-aws-accounts/decentralized-ingress.html
