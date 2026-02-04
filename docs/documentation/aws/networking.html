@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>Account structure - OHID Technical Documentation</title>
+    <title>AWS Networking - OHID Technical Documentation</title>
 
     <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/account-structure.html">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/networking.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="Account structure - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/account-structure.html" />
+      <meta name="twitter:title" content="AWS Networking - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/networking.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="Account structure" />
+      <meta property="og:title" content="AWS Networking" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/account-structure.html" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/networking.html" />
 
     
   </head>
@@ -91,19 +91,19 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#account-structure"><span>Account structure</span></a>
+    <a href="#aws-networking"><span>AWS Networking</span></a>
     <ul>
       <li>
-        <a href="#organisation-management-root-account"><span>Organisation Management (root) account</span></a>
+        <a href="#account-specific"><span>Account specific</span></a>
       </li>
       <li>
-        <a href="#security-ou"><span>Security OU</span></a>
+        <a href="#egress"><span>Egress</span></a>
       </li>
       <li>
-        <a href="#infrastructure-ou"><span>Infrastructure OU</span></a>
+        <a href="#ingress"><span>Ingress</span></a>
       </li>
       <li>
-        <a href="#ohid-ou-workload-accounts"><span>OHID OU (workload accounts)</span></a>
+        <a href="#additional-reading"><span>Additional reading</span></a>
       </li>
     </ul>
   </li>
@@ -116,49 +116,58 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="account-structure">Account structure</h1>
-<p>We use AWS Organizations + Control Tower, with accounts split by service and environment. The account boundary is the primary blast radius boundary: if one environment is misconfigured or compromised, we want the damage to be contained to its own AWS account.</p>
-<p><a href="../../images/ohid-aws-org.png" rel="noopener noreferrer"><img src="../../images/ohid-aws-org.png" alt="Diagram of AWS Organisation" /></a></p>
+            <h1 id="aws-networking">AWS Networking</h1>
+<h2 id="account-specific">Account specific</h2>
+<p>Account networking is created and managed by Terraform inside each workload account. The common result is one VPC per account with at least public and private subnets across multiple availability zones.</p>
+<p>When creating a new account:</p>
 
 <ul>
-<li><p>The AWS account structure is a control plane concept. It does not imply anything about network architecture or traffic flows.</p></li>
-<li><p>There are additional OUs and accounts but these are historical and should be archived when possible.</p></li>
+<li>Keep CIDR ranges non-overlapping.</li>
+<li>Leave headroom for future service growth.</li>
+<li>Enable flow logs on your VPC and ship them to the Log Archive account.</li>
 </ul>
-<h2 id="organisation-management-root-account">Organisation Management (root) account</h2>
-<p>The management account is the front door for AWS Organisations. It should not run workloads. It is primarily for aggregation of billing and budgets, delegated administration for Organisation-wide services, User Management and Control Tower configuration.</p>
-<p>Day-to-day engineering work should be done in workload accounts, not the management account.</p>
-<h2 id="security-ou">Security OU</h2>
-<h3 id="audit-account">Audit account</h3>
-<p>Dedicated to security monitoring and response tooling (e.g. central security dashboards, guardrails, and security automation).</p>
-<h3 id="log-archive-account">Log Archive account</h3>
-<p>Dedicated to ingesting and archiving organisation-wide logs (e.g. CloudTrail, VPC Flow Logs and ALB logs).</p>
-<p>VPCs and ALBs from other accounts MUST ship their VPC flow logs and ALB logs here.</p>
-<h3 id="backup-administrator">Backup Administrator</h3>
-<p>Delegated admin account for AWS Backup. Responsible for managing backup policies, backup plans, and organizational backup configurations.</p>
-<h3 id="central-backups">Central Backups</h3>
-<p>Dedicated account where backups are stored in a centralised AWS Backup vault. The See <a href="centralised-backups.html">centralised backups</a> page for more information about this.</p>
-<h2 id="infrastructure-ou">Infrastructure OU</h2>
-<h3 id="shared-services">Shared Services</h3>
-<p>Used for shared platform capabilities that would otherwise be duplicated in every workload account (for example: a central ECR registry for container images).</p>
-<h3 id="networking">Networking</h3>
-<p>Used for centralised networking. See <a href="networking.html">Networking</a> page for more information on how this works.</p>
-<h2 id="ohid-ou-workload-accounts">OHID OU (workload accounts)</h2>
-<p>This contains service accounts, normally at least:</p>
+<p>We should consider moving CIDR management to AWS IPAM should reduce manual coordination and the risk of overlap.</p>
+<h2 id="egress">Egress</h2>
+<p>Except for VPC endpoints, egress traffic originating from private subnets is routed over a Transit Gateway attachment and into the Networking account where it uses the Networking account&rsquo;s NAT gateways to reach the Internet.</p>
+<p>Where possible, use VPC endpoints for AWS services (for example S3) so traffic does not need to traverse NAT.</p>
+<p>Transit Gateway is not in the datapath for normal internet ingress and response traffic (See Ingress section below).</p>
+<h3 id="architecture">Architecture</h3>
+<p><a href="../../images/aws-centralised-egress-diagram.png" rel="noopener noreferrer"><img src="../../images/aws-centralised-egress-diagram.png" alt="Diagram of centralised egress" /></a></p>
+<h2 id="ingress">Ingress</h2>
+<p>Unlike internet egress, service accounts take a decentralised approach to ingress and expose entry points at individual account level.</p>
+<p>Ingress flow differs slightly by entry point:</p>
 
 <ul>
-<li><code>&lt;service&gt;-dev</code></li>
-<li><code>&lt;service&gt;-uat</code></li>
-<li><code>&lt;service&gt;-prd</code></li>
+<li><code>ALB</code> pattern: client traffic enters via the VPC Internet Gateway and is terminated at the ALB. The ALB then opens a new connection to the target in private subnets (for example ECS tasks). Response traffic returns to the ALB and then back to the client through the Internet Gateway.</li>
+<li><code>API Gateway</code> pattern: TLS is terminated by API Gateway at the edge/regional service layer. API Gateway then invokes the backend integration (for example Lambda)</li>
 </ul>
-<p>This gives each service/environment an isolated control plane so that changes in one place do not accidentally impact another service.</p>
+<p>Standard expectations:</p>
+
+<ul>
+<li>Keep application compute/data planes in private subnets.</li>
+<li>Use ALB + AWS WAF as the default ingress pattern for public-facing services.</li>
+<li>Use API Gateway for API-first services where its features are needed (for example request validation, authorizers, usage plans, or throttling controls).</li>
+<li>If NLB is required, document the rationale and apply compensating controls because WAF cannot be attached directly to NLB.</li>
+<li>Restrict inbound ports and source ranges with security groups.</li>
+<li>Keep DNS and certificate ownership explicit per service/environment.</li>
+<li>Default to one ALB per account; only add more where there is a clear operational or security reason.</li>
+<li>Access to databases should always be through SSM and through SSH tunnels.</li>
+</ul>
+<h2 id="additional-reading">Additional reading</h2>
+
+<ul>
+<li>https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/using-nat-gateway-for-centralized-egress.html</li>
+<li>https://docs.aws.amazon.com/prescriptive-guidance/latest/transitioning-to-multiple-aws-accounts/decentralized-ingress.html</li>
+<li>https://github.com/ukhsa-collaboration/ohid-networks-iac</li>
+</ul>
 
             
           </main>
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/aws/account-structure.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Account+structure%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Faws%2Faccount-structure.html%29&amp;labels=bug&amp;title=Re%3A+%27Account+structure%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/aws/networking.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27AWS+Networking%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Faws%2Fnetworking.html%29&amp;labels=bug&amp;title=Re%3A+%27AWS+Networking%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>

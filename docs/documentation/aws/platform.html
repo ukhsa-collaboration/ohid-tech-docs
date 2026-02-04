@@ -94,9 +94,6 @@
     <a href="#platform-basics"><span>Platform basics</span></a>
     <ul>
       <li>
-        <a href="#networking"><span>Networking</span></a>
-      </li>
-      <li>
         <a href="#terraform-state"><span>Terraform state</span></a>
       </li>
       <li>
@@ -117,15 +114,6 @@
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
             <h1 id="platform-basics">Platform basics</h1>
-<h2 id="networking">Networking</h2>
-<p>Networking is currently created and managed by Terraform inside each workload account. The common result is one VPC per account with its own subnets, NAT gateways, and endpoints.</p>
-<p>This is fine for our current scale, but it has trade-offs:
-Guidance:</p>
-
-<ul>
-<li>Keep CIDRs non-overlapping by default. This will allow cross-service networking through a TGW or peering in the future without too much NAT-hackery.</li>
-<li>Prefer VPC endpoints for AWS services to reduce NAT traffic where feasible.</li>
-</ul>
 <h2 id="terraform-state">Terraform state</h2>
 <p>State currently lives per-account: Terraform creates an S3 bucket for the backend. Optionally, a DynamoDB table is also created but this is no longer necessary with newer versions of Terraform.</p>
 <p>One potential improvement would be to centralise backend bucket creation via StackSets/CloudFormation.</p>
