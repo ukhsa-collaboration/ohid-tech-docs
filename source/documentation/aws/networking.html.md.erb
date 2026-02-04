@@ -48,7 +48,7 @@ Standard expectations:
 - Restrict inbound ports and source ranges with security groups.
 - Keep DNS and certificate ownership explicit per service/environment.
 - Default to one ALB per account; only add more where there is a clear operational or security reason.
-- Access to databases should always be through SSM and through SSH tunnels.
+- Access to databases should always be through SSM and not through SSH tunnels. See [database access](documentation/guides/database-access) page for more info.
 
 ## Additional reading
 - https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/using-nat-gateway-for-centralized-egress.html
