@@ -94,6 +94,9 @@
     <a href="#weight-loss-plan"><span>Weight Loss Plan</span></a>
     <ul>
       <li>
+        <a href="#the-app-follows-the-standard-pattern-it-uses-a-static-assets-s3-bucket-to-pull-information-using-its-quot-calorie-search-quot-function"><span>The app follows the standard pattern. It uses a Static Assets S3 bucket to pull information using its “Calorie Search” function.</span></a>
+      </li>
+      <li>
         <a href="#architecture-overview"><span>Architecture Overview</span></a>
       </li>
       <li>
@@ -117,14 +120,14 @@
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
             <h1 id="weight-loss-plan">Weight Loss Plan</h1>
-<p>Weight Loss Plan delivers the 12-week Better Health programme. Editors curate plan content, surveys, goals, and rewards through a Django CMS which exposes an API that the mobile and web clients consume. The stack runs entirely in AWS using GitHub Actions → ECR → ECS deploys, with CloudFront distributing static assets and Aurora PostgreSQL plus OpenSearch storing structured and search data respectively.</p>
-
-<hr>
+<p>Weight Loss Plan helps make healthier food choices, set weight loss goals to helps users get more active and burn more calories.</p>
+<h2 id="the-app-follows-the-standard-pattern-it-uses-a-static-assets-s3-bucket-to-pull-information-using-its-quot-calorie-search-quot-function">The app follows the <a href="../guides/standard-pattern.html">standard pattern</a>. It uses a Static Assets S3 bucket to pull information using its &ldquo;Calorie Search&rdquo; function.</h2>
 <h2 id="architecture-overview">Architecture Overview</h2>
 <div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
     User[User Request]
     CloudFront[CloudFront CDN]
     S3Media[S3 Media Bucket]
+    StaticAssets[S3 StaticAssets Bucket]
     ALB[Application Load Balancer]
     ECS[ECS Fargate - Django CMS/API]
     RDS[Aurora PostgreSQL]
@@ -134,6 +137,7 @@
     Secrets[Secrets Manager / SSM]
 
     User --&gt; CloudFront --&gt; S3Media
+    User --&gt; CloudFront --&gt; StaticAssets
     User --&gt; ALB --&gt; ECS --&gt; RDS
     ECS --&gt; OpenSearch
     ECS --&gt; S3Media
