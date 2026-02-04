@@ -1,0 +1,40 @@
+---
+title: Searching logs
+last_reviewed_on: 2026-02-03
+review_in: 12 months
+---
+
+# <%= current_page.data.title %>
+
+ECS and Lambda application logs are are shipped to CloudWatch Logs and stored in the account running the workload.
+
+## Find the right account
+
+1. Sign in to the OHID AWS organisation.
+2. Switch to the service account and environment you need (for example, `Active 10 - Production`).
+3. Confirm the AWS region for the service before you search logs.
+
+## Search logs in CloudWatch
+
+1. Open CloudWatch.
+2. Go to `Logs` -> `Log groups`.
+3. Select the log group(s) for the service you are investigating.
+4. Use `Log Insights` to search across the selected log groups.
+
+## Basic Log Insights queries
+
+Find the latest errors:
+
+```sql
+fields @timestamp, @message
+| filter @message like /error/i
+| sort @timestamp desc
+| limit 50
+```
+
+## Tips
+
+- Start with a short time range, then widen it.
+- If you cannot find logs, confirm you are in the correct account, environment, and region.
+- Keep searches narrow by selecting only the log groups you need.
+- AWS has a few sample queries that you may be able to build off to aid in your queries: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax-examples.html#CWL_QuerySyntax-examples-Lambda

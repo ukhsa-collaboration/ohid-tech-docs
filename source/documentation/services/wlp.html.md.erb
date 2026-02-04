@@ -5,8 +5,9 @@ parent: Services
 
 # <%= current_page.data.title %>
 
-Weight Loss Plan delivers the 12-week Better Health programme. Editors curate plan content, surveys, goals, and rewards through a Django CMS which exposes an API that the mobile and web clients consume. The stack runs entirely in AWS using GitHub Actions → ECR → ECS deploys, with CloudFront distributing static assets and Aurora PostgreSQL plus OpenSearch storing structured and search data respectively.
+Weight Loss Plan helps make healthier food choices, set weight loss goals to helps users get more active and burn more calories.
 
+The app follows the [standard pattern](documentation/guides/standard-pattern). It uses a Static Assets S3 bucket to pull information using its "Calorie Search" function.
 ---
 
 ## Architecture Overview
@@ -16,6 +17,7 @@ graph TD;
     User[User Request]
     CloudFront[CloudFront CDN]
     S3Media[S3 Media Bucket]
+    StaticAssets[S3 StaticAssets Bucket]
     ALB[Application Load Balancer]
     ECS[ECS Fargate - Django CMS/API]
     RDS[Aurora PostgreSQL]
@@ -25,6 +27,7 @@ graph TD;
     Secrets[Secrets Manager / SSM]
 
     User --> CloudFront --> S3Media
+    User --> CloudFront --> StaticAssets
     User --> ALB --> ECS --> RDS
     ECS --> OpenSearch
     ECS --> S3Media
