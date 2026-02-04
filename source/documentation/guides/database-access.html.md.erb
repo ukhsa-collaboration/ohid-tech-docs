@@ -54,12 +54,7 @@ python open_rds_tunnel.py --db-name <db_name> --writer --region eu-west-2
 While the tunnel is running in one terminal, use another to connect:
 
 ```bash
-aws rds generate-db-auth-token \
-  --hostname <cluster-endpoint> \
-  --port 5432 \
-  --username db_iam_user \
-  --region eu-west-2 \
-| psql "host=<cluster-endpoint> hostaddr=127.0.0.1 port=5432 sslmode=require dbname=<db_name> user=db_iam_user"
+psql "host=<cluster-endpoint> hostaddr=127.0.0.1 port=5432 sslmode=require dbname=<db_name> user=<db user>"
 ```
 
 #### Connect with pgAdmin / DBeaver
@@ -68,7 +63,7 @@ aws rds generate-db-auth-token \
 * **Host Address**: `127.0.0.1`
 * **Port**: `5432`
 * **Database**: `reporting_db` (or your chosen db)
-* **Username**: IAM user (`db_iam_user`)
+* **Username**: <db user>
 * **SSL Mode**: `require`
 
 Your password will need to be generated with the below command:
