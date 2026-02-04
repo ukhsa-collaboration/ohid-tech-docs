@@ -14,7 +14,7 @@ We use AWS Organizations + Control Tower, with accounts split by service and env
 
 - There are additional OUs and accounts but these are historical and should be archived when possible.
 
-## Organization Management (root) account
+## Organisation Management (root) account
 
 The management account is the front door for AWS Organisations. It should not run workloads. It is primarily for aggregation of billing and budgets, delegated administration for Organisation-wide services, User Management and Control Tower configuration.
 
@@ -30,19 +30,25 @@ Dedicated to security monitoring and response tooling (e.g. central security das
 
 Dedicated to ingesting and archiving organisation-wide logs (e.g. CloudTrail, VPC Flow Logs and ALB logs).
 
+VPCs and ALBs from other accounts MUST ship their VPC flow logs and ALB logs here.
+
 ### Backup Administrator
 
 Delegated admin account for AWS Backup. Responsible for managing backup policies, backup plans, and organizational backup configurations.
 
 ### Central Backups
 
-Dedicated account where backups are stored in a centralized AWS Backup vault.
+Dedicated account where backups are stored in a centralised AWS Backup vault. The See [centralised backups](documentation/aws/centralised-backups) page for more information about this.
 
 ## Infrastructure OU
 
-### Shared Services account
+### Shared Services
 
 Used for shared platform capabilities that would otherwise be duplicated in every workload account (for example: a central ECR registry for container images).
+
+### Networking
+
+Used for centralised networking. See [Networking](documentation/aws/networking) page for more information on how this works.
 
 ## OHID OU (workload accounts)
 
