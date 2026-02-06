@@ -7,8 +7,7 @@ parent: Services
 
 Weight Loss Plan helps make healthier food choices, set weight loss goals to helps users get more active and burn more calories.
 
-The app follows the [standard pattern](documentation/guides/standard-pattern). It uses a Static Assets S3 bucket to pull information using its "Calorie Search" function.
----
+The app follows the [standard pattern](documentation/guides/standard-pattern). It uses a Static Assets S3 bucket to pull information using its "Calorie Search" function. The name of this bucket is hardcoded into the mobile app which makes replacing it more difficult.
 
 ## Architecture Overview
 
@@ -36,27 +35,23 @@ graph TD;
     ECS --> Secrets
 ```
 
----
-
 ## Components
 
 ### Applications
 
-- **Repo:** [weightloss-cms-iac](https://github.com/ukhsa-collaboration/weightloss-cms-iac) – Django CMS that editors use to manage articles, recipes, legal copy, rewards, BMI calculators, and in-app surveys. It serves HTML for the CMS itself plus JSON endpoints for the mobile app, integrates with SurveyMonkey, Firebase, and Google APIs, and indexes page metadata in OpenSearch.
+- **Repo:** [weightloss-cms-iac](https://github.com/ukhsa-collaboration/weightloss-cms-iac) – Django CMS for the app.
 
-### Infrastructure as Code (IaC)
+### Infrastructure as Code
 
-- **Repo:** [weightloss-iac](https://github.com/ukhsa-collaboration/weightloss-iac) – Terraform modules that provision the VPC, ECS cluster/service, Aurora PostgreSQL cluster, OpenSearch domain, CloudFront distribution, Route 53 zones for both the CMS and CDN hostnames, and GitHub OIDC roles used by application deploy pipelines.
-
----
+- **Repo:** [weightloss-iac](https://github.com/ukhsa-collaboration/weightloss-iac) – Terraform modules that infrastructure.
 
 ## Environments
 
 | Environment | URL | Notes |
 |-------------|-----|-------|
-| **Production** | https://weightloss-cms-prd.phedigital.co.uk | Static assets served from https://cdn.prd.weightloss.phedigital.co.uk. |
-| **Staging** | https://weightloss-cms-stg.phedigital.co.uk | Mirrors production integrations; CDN https://cdn.stg.weightloss.phedigital.co.uk. |
-| **Dev** | https://weightloss-cms-dev.phedigital.co.uk | First landing-zone account; CDN https://cdn.dev.weightloss.phedigital.co.uk. |
+| **Production** | https://weightloss-cms-prod.phedigital.co.uk | Static assets served from https://cdn.weightloss-cms-prod.phedigital.co.uk. |
+| **Staging** | https://weightloss-cms-stg.phedigital.co.uk | Mirrors production integrations; CDN https://cdn.weightloss-cms-stg.phedigital.co.uk. |
+| **Dev** | https://weightloss-cms-dev.phedigital.co.uk | First landing-zone account; CDN https://cdn.weightloss-cms-dev.phedigital.co.uk. |
 
 ---
 
@@ -67,7 +62,7 @@ Every environment manages two Route 53 hosted zones inside its AWS account: one
 Subdomains:
 
 - weightloss-cms-prd.phedigital.co.uk / -stg / -dev – CMS and API entrypoints (ALB).
-- cdn.prd.weightloss.phedigital.co.uk / cdn.stg.weightloss.phedigital.co.uk / cdn.dev.weightloss.phedigital.co.uk – CloudFront distributions that front the S3 media bucket.
+- cdn.weightloss-cms-prod.phedigital.co.uk / cdn.weightloss-cms-stg.phedigital.co.uk / cdn.weightloss-cms-dev.phedigital.co.uk – CloudFront distributions that front the S3 media bucket.
 
 ```mermaid
 graph TD
@@ -77,21 +72,21 @@ graph TD
 
   subgraph DEV_ACC[dev account]
     DEV_CMS[weightloss-cms-dev.phedigital.co.uk]
-    DEV_CDN[cdn.dev.weightloss.phedigital.co.uk]
+    DEV_CDN[cdn.weightloss-cms-dev.phedigital.co.uk]
     ALB_DEV[ALB - dev]
     CF_DEV[CloudFront - dev]
   end
 
   subgraph STG_ACC[stg account]
     STG_CMS[weightloss-cms-stg.phedigital.co.uk]
-    STG_CDN[cdn.stg.weightloss.phedigital.co.uk]
+    STG_CDN[cdn.weightloss-cms-stg.phedigital.co.uk]
     ALB_STG[ALB - stg]
     CF_STG[CloudFront - stg]
   end
 
   subgraph PRD_ACC[prd account]
     PRD_CMS[weightloss-cms-prd.phedigital.co.uk]
-    PRD_CDN[cdn.prd.weightloss.phedigital.co.uk]
+    PRD_CDN[cdn.weightloss-cms-prod.phedigital.co.uk]
     ALB_PRD[ALB - prd]
     CF_PRD[CloudFront - prd]
   end
