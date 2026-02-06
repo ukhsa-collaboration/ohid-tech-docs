@@ -94,9 +94,6 @@
     <a href="#weight-loss-plan"><span>Weight Loss Plan</span></a>
     <ul>
       <li>
-        <a href="#the-app-follows-the-standard-pattern-it-uses-a-static-assets-s3-bucket-to-pull-information-using-its-quot-calorie-search-quot-function"><span>The app follows the standard pattern. It uses a Static Assets S3 bucket to pull information using its “Calorie Search” function.</span></a>
-      </li>
-      <li>
         <a href="#architecture-overview"><span>Architecture Overview</span></a>
       </li>
       <li>
@@ -121,7 +118,7 @@
           <main id="content" class="technical-documentation" data-module="anchored-headings">
             <h1 id="weight-loss-plan">Weight Loss Plan</h1>
 <p>Weight Loss Plan helps make healthier food choices, set weight loss goals to helps users get more active and burn more calories.</p>
-<h2 id="the-app-follows-the-standard-pattern-it-uses-a-static-assets-s3-bucket-to-pull-information-using-its-quot-calorie-search-quot-function">The app follows the <a href="../guides/standard-pattern.html">standard pattern</a>. It uses a Static Assets S3 bucket to pull information using its &ldquo;Calorie Search&rdquo; function.</h2>
+<p>The app follows the <a href="../guides/standard-pattern.html">standard pattern</a>. It uses a Static Assets S3 bucket to pull information using its &ldquo;Calorie Search&rdquo; function. The name of this bucket is hardcoded into the mobile app which makes replacing it more difficult.</p>
 <h2 id="architecture-overview">Architecture Overview</h2>
 <div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
     User[User Request]
@@ -144,21 +141,17 @@
     ECS --&gt; Firebase
     ECS --&gt; SurveyMonkey
     ECS --&gt; Secrets
-</code></pre></div>
-<hr>
-<h2 id="components">Components</h2>
+</code></pre></div><h2 id="components">Components</h2>
 <h3 id="applications">Applications</h3>
 
 <ul>
-<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/weightloss-cms-iac">weightloss-cms-iac</a> – Django CMS that editors use to manage articles, recipes, legal copy, rewards, BMI calculators, and in-app surveys. It serves HTML for the CMS itself plus JSON endpoints for the mobile app, integrates with SurveyMonkey, Firebase, and Google APIs, and indexes page metadata in OpenSearch.</li>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/weightloss-cms-iac">weightloss-cms-iac</a> – Django CMS for the app.</li>
 </ul>
-<h3 id="infrastructure-as-code-iac">Infrastructure as Code (IaC)</h3>
+<h3 id="infrastructure-as-code">Infrastructure as Code</h3>
 
 <ul>
-<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/weightloss-iac">weightloss-iac</a> – Terraform modules that provision the VPC, ECS cluster/service, Aurora PostgreSQL cluster, OpenSearch domain, CloudFront distribution, Route 53 zones for both the CMS and CDN hostnames, and GitHub OIDC roles used by application deploy pipelines.</li>
+<li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/weightloss-iac">weightloss-iac</a> – Terraform modules that infrastructure.</li>
 </ul>
-
-<hr>
 <h2 id="environments">Environments</h2>
 <div class="table-container">
         <table>
@@ -168,16 +161,16 @@
 <th>Notes</th>
 </tr><tr>
 <td><strong>Production</strong></td>
-<td>https://weightloss-cms-prd.phedigital.co.uk</td>
-<td>Static assets served from https://cdn.prd.weightloss.phedigital.co.uk.</td>
+<td>https://weightloss-cms-prod.phedigital.co.uk</td>
+<td>Static assets served from https://cdn.weightloss-cms-prod.phedigital.co.uk.</td>
 </tr><tr>
 <td><strong>Staging</strong></td>
 <td>https://weightloss-cms-stg.phedigital.co.uk</td>
-<td>Mirrors production integrations; CDN https://cdn.stg.weightloss.phedigital.co.uk.</td>
+<td>Mirrors production integrations; CDN https://cdn.weightloss-cms-stg.phedigital.co.uk.</td>
 </tr><tr>
 <td><strong>Dev</strong></td>
 <td>https://weightloss-cms-dev.phedigital.co.uk</td>
-<td>First landing-zone account; CDN https://cdn.dev.weightloss.phedigital.co.uk.</td>
+<td>First landing-zone account; CDN https://cdn.weightloss-cms-dev.phedigital.co.uk.</td>
 </tr>
         </table>
       </div>
@@ -188,7 +181,7 @@
 
 <ul>
 <li>weightloss-cms-prd.phedigital.co.uk / -stg / -dev – CMS and API entrypoints (ALB).</li>
-<li>cdn.prd.weightloss.phedigital.co.uk / cdn.stg.weightloss.phedigital.co.uk / cdn.dev.weightloss.phedigital.co.uk – CloudFront distributions that front the S3 media bucket.</li>
+<li>cdn.weightloss-cms-prod.phedigital.co.uk / cdn.weightloss-cms-stg.phedigital.co.uk / cdn.weightloss-cms-dev.phedigital.co.uk – CloudFront distributions that front the S3 media bucket.</li>
 </ul>
 <div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD
   subgraph PHE_PRD[phedigital.co.uk – phe-prd account]
@@ -197,21 +190,21 @@
 
   subgraph DEV_ACC[dev account]
     DEV_CMS[weightloss-cms-dev.phedigital.co.uk]
-    DEV_CDN[cdn.dev.weightloss.phedigital.co.uk]
+    DEV_CDN[cdn.weightloss-cms-dev.phedigital.co.uk]
     ALB_DEV[ALB - dev]
     CF_DEV[CloudFront - dev]
   end
 
   subgraph STG_ACC[stg account]
     STG_CMS[weightloss-cms-stg.phedigital.co.uk]
-    STG_CDN[cdn.stg.weightloss.phedigital.co.uk]
+    STG_CDN[cdn.weightloss-cms-stg.phedigital.co.uk]
     ALB_STG[ALB - stg]
     CF_STG[CloudFront - stg]
   end
 
   subgraph PRD_ACC[prd account]
     PRD_CMS[weightloss-cms-prd.phedigital.co.uk]
-    PRD_CDN[cdn.prd.weightloss.phedigital.co.uk]
+    PRD_CDN[cdn.weightloss-cms-prod.phedigital.co.uk]
     ALB_PRD[ALB - prd]
     CF_PRD[CloudFront - prd]
   end

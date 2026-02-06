@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>Platform basics - OHID Technical Documentation</title>
+    <title>Licensing code - OHID Technical Documentation</title>
 
     <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/platform.html">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/licensing.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="Platform basics - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/platform.html" />
+      <meta name="twitter:title" content="Licensing code - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/licensing.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="Platform basics" />
+      <meta property="og:title" content="Licensing code" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/platform.html" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/licensing.html" />
 
     
   </head>
@@ -91,18 +91,7 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#platform-basics"><span>Platform basics</span></a>
-    <ul>
-      <li>
-        <a href="#terraform-state"><span>Terraform state</span></a>
-      </li>
-      <li>
-        <a href="#control-tower-logging"><span>Control Tower logging</span></a>
-      </li>
-      <li>
-        <a href="#dns"><span>DNS</span></a>
-      </li>
-    </ul>
+    <a href="#licensing-code"><span>Licensing code</span></a>
   </li>
 </ul>
 
@@ -113,23 +102,17 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="platform-basics">Platform basics</h1>
-<h2 id="terraform-state">Terraform state</h2>
-<p>State currently lives per-account: Terraform creates an S3 bucket for the backend. Optionally, a DynamoDB table is also created but this is no longer necessary with newer versions of Terraform.</p>
-<p>One potential improvement would be to centralise backend bucket creation via StackSets/CloudFormation.</p>
-<h2 id="control-tower-logging">Control Tower logging</h2>
-<p>CloudTrail and Config are enabled through Control Tower, so logs should already land in the centralised log archive account.</p>
-<h2 id="dns">DNS</h2>
-<p>DNS is not consistent today. It’s mostly delegated from <code>phe-prd</code>, but the subdomain patterns vary by service.</p>
-<p>Service-specific quirks are documented on each service page under <code>Services</code>.</p>
+            <h1 id="licensing-code">Licensing code</h1>
+<p>In line with <a href="https://www.gov.uk/service-manual/technology/making-source-code-open-and-reusable#licensing-your-code">GDS standards</a>, we try to open source as much of our code as possible.</p>
+<p>We use <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPLv3 license</a> for code related to the NHS Better Health Apps.</p>
 
             
           </main>
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/aws/platform.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Platform+basics%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Faws%2Fplatform.html%29&amp;labels=bug&amp;title=Re%3A+%27Platform+basics%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/guides/licensing.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Licensing+code%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fguides%2Flicensing.html%29&amp;labels=bug&amp;title=Re%3A+%27Licensing+code%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>
