@@ -1,0 +1,24 @@
+---
+title: Troubleshooting runbook
+last_reviewed_on: 2026-01-29
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+This page documents common or likely failure modes and their causes. It is non-exhaustive and does not cover every possible scenario, but aims to capture the most frequently encountered issues.
+
+## Common issues
+
+| # | Failure Mode | User-Facing Symptoms | Internal Symptoms | Likely Cause | Checks / Actions |
+|---|-------------|----------------------|-------------------|--------------|------------------|
+| 1 | Database permission issues | New users may see no content. Direct API access may return 502/503 errors. | ECS tasks restart repeatedly. Django permission errors appear in logs. | Application database user lacks required permissions, often following migrations or role changes. | Check CloudWatch logs for Django errors. Verify RDS user grants. Review recent schema or feature changes. |
+| 2 | Incorrect S3 bucket permissions | Media (images/audio) missing for users. Media links return access denied errors. | API responses otherwise return successfully. | IAM role or bucket policy does not permit access to required S3 objects. | Review S3 bucket and Cloudfront policies. Check CloudTrail for denied S3 actions. |
+| 3 | DNS resolution failures | Browser displays "website cannot be found". | `dig` / `nslookup` returns NXDOMAIN. No traffic reaches the ALB. | Route 53 hosted zone recreated without updating parent DNS zone delegations. | Confirm NS records in the parent zone match the Route 53 hosted zone. Check recent DNS changes and propagation status. |
+| 4 | Redis cache unreachable | Slower responses for NHS login-related APIs. | Errors appear in backend (not CMS) logs. Increased database load observed. | Redis unavailable or network connectivity blocked. | Check Redis cluster health. Verify security groups and routing. Review backend logs for cache connection failures. |
+| 5 | TLS certificate expiry | Applications may show missing content. Direct API access shows browser security warnings. | HTTPS failures observed at the ALB. | Expired or invalid TLS certificate attached to the ALB listener. | Check ACM certificate expiry. Validate ALB listener configuration. Confirm renewal status or recent certificate updates. |
+| 6 | Missing container images | Users may receive 503 errors if no tasks are running. | ECS tasks continuously restart with image pull errors. | Image tag incorrect or missing from ECR. Parameter Store references a non-existent tag. | Verify image tag in Parameter Store. Confirm image exists in ECR. Rebuild and push image if required. image pull succeeds but tasks still fail early, see row 8. |
+| 7 | WAF blocking requests | Users receive 403 Forbidden errors. | Requests blocked before reaching the application. WAF logs show rule matches. | Web Application Firewall rules blocking legitimate traffic, possibly due to rule changes or false positives. | Review WAF rules and recent changes. Check WAF metrics and logs to identify which rules are blocking requests. Validate whether blocks are expected or require rule tuning.
+| 8 | ECS task execution role lacks Secrets Manager permissions | Users may receive 503 errors if tasks fail to start (similar to row 6). | ECS tasks fail during startup. Errors indicate inability to retrieve secrets. | ECS task execution role does not have sufficient permissions to read secrets from Secrets Manager. | Check ECS task execution role IAM policy. Verify required `secretsmanager:GetSecretValue` permissions. Review task definition secret references. If tasks fail before pulling images, also review row 6 for image-related failures. |
+| 9 | Security group or network misconfiguration | Users may see timeouts or 5xx errors. | ALB targets marked unhealthy. Connection timeouts in logs. | Security group or routing changes blocking traffic between ALB, ECS, or downstream services. | Verify security group rules between ALB and ECS. Check outbound rules from ECS to RDS, Redis, and external services. Review recent network changes. |
+| 10 | ALB health check failures | Intermittent 503 errors. | Targets marked unhealthy in ALB target group. ECS tasks may be running but not receiving traffic. | Health check path, port, or success codes misconfigured, or application too slow to respond. | Check target group health status. Verify health check path and expected response codes. Review application startup and response times. Check that Gunicorn/Uvicorn is running inside of containers and not being terminated. |
