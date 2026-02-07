@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" class="govuk-template no-js">
+  <head>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <title>Troubleshooting runbook - OHID Technical Documentation</title>
+
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
+
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/troubleshooting-runbook.html">
+
+      <meta name="robots" content="noindex" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
+      <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta name="twitter:title" content="Troubleshooting runbook - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/troubleshooting-runbook.html" />
+
+      <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
+      <meta property="og:site_name" content="OHID Technical Documentation" />
+      <meta property="og:title" content="Troubleshooting runbook" />
+      <meta property="og:type" content="object" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/guides/troubleshooting-runbook.html" />
+
+    
+  </head>
+
+  <body class="govuk-template__body">
+    <script>document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');</script>
+
+    <div class="app-pane">
+      <div class="app-pane__header toc-open-disabled">
+        <a href="#content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+
+        <header class="govuk-header app-header" role="banner" data-module="govuk-header">
+  <div class="govuk-header__container govuk-header__container--full-width">
+    <div class="govuk-header__logo">
+      <a href="https://ukhsa-collaboration.github.io/ohid-tech-docs" class="govuk-header__link govuk-header__link--homepage">
+        <span class="govuk-header__product-name">
+          OHID Technical Documentation
+        </span>
+      </a>
+        <strong class="govuk-tag">internal</strong>
+    </div>
+    <div class="govuk-header__content">
+      <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
+        <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
+        <ul id="navigation" class="govuk-header__navigation-list">
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
+            </li>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
+            </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+      </div>
+
+        <div id="toc-heading" class="toc-show fixedsticky">
+          <button type="button" class="toc-show__label js-toc-show" aria-controls="toc">
+            Table of contents <span class="toc-show__icon"></span>
+          </button>
+        </div>
+
+      <div class="app-pane__body" data-module="in-page-navigation">
+          <div class="app-pane__toc">
+            <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
+  <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
+    <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
+    <label class="govuk-label search__label" for="search" aria-hidden="true">
+      Search (via Google)
+    </label>
+    <input
+      type="text"
+      id="search" name="q"
+      class="govuk-input govuk-!-margin-bottom-0 search__input"
+      aria-controls="search-results"
+      placeholder="Search">
+    <button type="submit" class="search__button">Search</button>
+  </form>
+</div>
+
+              <button type="button" class="toc__close js-toc-close" aria-controls="toc" aria-label="Hide table of contents"></button>
+              <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
+                      <ul>
+  <li>
+    <a href="#troubleshooting-runbook"><span>Troubleshooting runbook</span></a>
+    <ul>
+      <li>
+        <a href="#common-issues"><span>Common issues</span></a>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+
+              </nav>
+            </div>
+          </div>
+
+        <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
+          <main id="content" class="technical-documentation" data-module="anchored-headings">
+            <h1 id="troubleshooting-runbook">Troubleshooting runbook</h1>
+<p>This page documents common or likely failure modes and their causes. It is non-exhaustive and does not cover every possible scenario, but aims to capture the most frequently encountered issues.</p>
+<h2 id="common-issues">Common issues</h2>
+<div class="table-container">
+        <table>
+          <tr>
+<th>#</th>
+<th>Failure Mode</th>
+<th>User-Facing Symptoms</th>
+<th>Internal Symptoms</th>
+<th>Likely Cause</th>
+<th>Checks / Actions</th>
+</tr><tr>
+<td>1</td>
+<td>Database permission issues</td>
+<td>New users may see no content. Direct API access may return 502/503 errors.</td>
+<td>ECS tasks restart repeatedly. Django permission errors appear in logs.</td>
+<td>Application database user lacks required permissions, often following migrations or role changes.</td>
+<td>Check CloudWatch logs for Django errors. Verify RDS user grants. Review recent schema or feature changes.</td>
+</tr><tr>
+<td>2</td>
+<td>Incorrect S3 bucket permissions</td>
+<td>Media (images/audio) missing for users. Media links return access denied errors.</td>
+<td>API responses otherwise return successfully.</td>
+<td>IAM role or bucket policy does not permit access to required S3 objects.</td>
+<td>Review S3 bucket and Cloudfront policies. Check CloudTrail for denied S3 actions.</td>
+</tr><tr>
+<td>3</td>
+<td>DNS resolution failures</td>
+<td>Browser displays &ldquo;website cannot be found&rdquo;.</td>
+<td>
+<code>dig</code> / <code>nslookup</code> returns NXDOMAIN. No traffic reaches the ALB.</td>
+<td>Route 53 hosted zone recreated without updating parent DNS zone delegations.</td>
+<td>Confirm NS records in the parent zone match the Route 53 hosted zone. Check recent DNS changes and propagation status.</td>
+</tr><tr>
+<td>4</td>
+<td>Redis cache unreachable</td>
+<td>Slower responses for NHS login-related APIs.</td>
+<td>Errors appear in backend (not CMS) logs. Increased database load observed.</td>
+<td>Redis unavailable or network connectivity blocked.</td>
+<td>Check Redis cluster health. Verify security groups and routing. Review backend logs for cache connection failures.</td>
+</tr><tr>
+<td>5</td>
+<td>TLS certificate expiry</td>
+<td>Applications may show missing content. Direct API access shows browser security warnings.</td>
+<td>HTTPS failures observed at the ALB.</td>
+<td>Expired or invalid TLS certificate attached to the ALB listener.</td>
+<td>Check ACM certificate expiry. Validate ALB listener configuration. Confirm renewal status or recent certificate updates.</td>
+</tr><tr>
+<td>6</td>
+<td>Missing container images</td>
+<td>Users may receive 503 errors if no tasks are running.</td>
+<td>ECS tasks continuously restart with image pull errors.</td>
+<td>Image tag incorrect or missing from ECR. Parameter Store references a non-existent tag.</td>
+<td>Verify image tag in Parameter Store. Confirm image exists in ECR. Rebuild and push image if required. image pull succeeds but tasks still fail early, see row 8.</td>
+</tr><tr>
+<td>7</td>
+<td>WAF blocking requests</td>
+<td>Users receive 403 Forbidden errors.</td>
+<td>Requests blocked before reaching the application. WAF logs show rule matches.</td>
+<td>Web Application Firewall rules blocking legitimate traffic, possibly due to rule changes or false positives.</td>
+<td>Review WAF rules and recent changes. Check WAF metrics and logs to identify which rules are blocking requests. Validate whether blocks are expected or require rule tuning.</td>
+</tr><tr>
+<td>8</td>
+<td>ECS task execution role lacks Secrets Manager permissions</td>
+<td>Users may receive 503 errors if tasks fail to start (similar to row 6).</td>
+<td>ECS tasks fail during startup. Errors indicate inability to retrieve secrets.</td>
+<td>ECS task execution role does not have sufficient permissions to read secrets from Secrets Manager.</td>
+<td>Check ECS task execution role IAM policy. Verify required <code>secretsmanager:GetSecretValue</code> permissions. Review task definition secret references. If tasks fail before pulling images, also review row 6 for image-related failures.</td>
+</tr><tr>
+<td>9</td>
+<td>Security group or network misconfiguration</td>
+<td>Users may see timeouts or 5xx errors.</td>
+<td>ALB targets marked unhealthy. Connection timeouts in logs.</td>
+<td>Security group or routing changes blocking traffic between ALB, ECS, or downstream services.</td>
+<td>Verify security group rules between ALB and ECS. Check outbound rules from ECS to RDS, Redis, and external services. Review recent network changes.</td>
+</tr><tr>
+<td>10</td>
+<td>ALB health check failures</td>
+<td>Intermittent 503 errors.</td>
+<td>Targets marked unhealthy in ALB target group. ECS tasks may be running but not receiving traffic.</td>
+<td>Health check path, port, or success codes misconfigured, or application too slow to respond.</td>
+<td>Check target group health status. Verify health check path and expected response codes. Review application startup and response times. Check that Gunicorn/Uvicorn is running inside of containers and not being terminated.</td>
+</tr>
+        </table>
+      </div>
+              <div data-module='page-expiry' data-last-reviewed-on="2026-07-16">
+    <div class='page-expiry--not-expired'>
+      This page was last reviewed on 29 January 2026.
+
+        It needs to be reviewed again on 16 July 2026
+.
+    </div>
+
+    <div class='page-expiry--expired'>
+      This page was set to be reviewed before 16 July 2026.
+      This might mean the content is out of date.
+    </div>
+  </div>
+
+          </main>
+
+          <aside>
+              <ul class="contribution-banner">
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/guides/troubleshooting-runbook.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Troubleshooting+runbook%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Fguides%2Ftroubleshooting-runbook.html%29&amp;labels=bug&amp;title=Re%3A+%27Troubleshooting+runbook%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
+              </ul>
+          </aside>
+
+          <footer class="govuk-footer app-footer" role="contentinfo">
+  <div class="govuk-footer__meta">
+    <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
+
+
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        class="govuk-footer__licence-logo"
+        xmlns="http://www.w3.org/2000/svg"
+        viewbox="0 0 483.2 195.7"
+        height="17"
+        width="41"
+      >
+        <path
+          fill="currentColor"
+          d="M421.5 142.8V.1l-50.7 32.3v161.1h112.4v-50.7zm-122.3-9.6A47.12 47.12 0 0 1 221 97.8c0-26 21.1-47.1 47.1-47.1 16.7 0 31.4 8.7 39.7 21.8l42.7-27.2A97.63 97.63 0 0 0 268.1 0c-36.5 0-68.3 20.1-85.1 49.7A98 98 0 0 0 97.8 0C43.9 0 0 43.9 0 97.8s43.9 97.8 97.8 97.8c36.5 0 68.3-20.1 85.1-49.7a97.76 97.76 0 0 0 149.6 25.4l19.4 22.2h3v-87.8h-80l24.3 27.5zM97.8 145c-26 0-47.1-21.1-47.1-47.1s21.1-47.1 47.1-47.1 47.2 21 47.2 47S123.8 145 97.8 145"
+        />
+      </svg>
+      <span class="govuk-footer__licence-description">
+        All content is available under the
+        <a
+          class="govuk-footer__link"
+          href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+          rel="license"
+        >Open Government Licence v3.0</a>, except where otherwise stated
+      </span>
+    </div>
+    <div class="govuk-footer__meta-item">
+      <a
+        class="govuk-footer__link govuk-footer__copyright-logo"
+        href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/"
+      >© Crown copyright</a>
+    </div>
+  </div>
+</footer>
+
+        </div>
+      </div>
+    </div>
+
+    
+    <script src="../../javascripts/application.js"></script>
+  </body>
+</html>
