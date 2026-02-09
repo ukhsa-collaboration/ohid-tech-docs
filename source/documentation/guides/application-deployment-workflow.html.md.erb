@@ -36,6 +36,13 @@ Most repositories use GitHub Environments to gate deployments:
 4. In the workflow run page, find the job waiting on an environment.
 5. Click Review deployments (or Approve and deploy) to open the approvals dialog.
 
+## Architecture
+
+The below diagram demonstrates the sequence of events needed to deploy a feature, hotfix or bugfix to production. The development begins in the top left corner.
+
+![Diagram of sequence of events for deploying to production using Github Flow](/images/github-flow-deployment-diagram.png)
+
+
 ## Troubleshooting
 
 - If you do not see Review deployments, you likely do not have permission for that environment.
