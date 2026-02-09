@@ -146,7 +146,9 @@ Not all accounts currently use the centralised egress setup. This is still WIP.<
 <li><code>ALB</code> pattern: client traffic enters via the VPC Internet Gateway and is terminated at the ALB. The ALB then opens a new connection to the target in private subnets (for example ECS tasks). Response traffic returns to the ALB and then back to the client through the Internet Gateway.</li>
 <li><code>API Gateway</code> pattern: TLS is terminated by API Gateway at the edge/regional service layer. API Gateway then invokes the backend integration (for example Lambda)</li>
 </ul>
-<p>Standard expectations:</p>
+<h3 id="ingress-architecture">Architecture</h3>
+<p><a href="../../images/aws-decentralised-ingress-diagram.png" rel="noopener noreferrer"><img src="../../images/aws-decentralised-ingress-diagram.png" alt="Diagram of decentralised ingress" /></a></p>
+<h3 id="standard-expectations-for-ingress">Standard expectations for ingress:</h3>
 
 <ul>
 <li>Keep application compute/data planes in private subnets.</li>
