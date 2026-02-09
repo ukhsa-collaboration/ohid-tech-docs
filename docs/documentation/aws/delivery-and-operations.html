@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>UKHSA-OHID Technical Guidance - OHID Technical Documentation</title>
+    <title>Image repositories - OHID Technical Documentation</title>
 
-    <link href="stylesheets/manifest.css" rel="stylesheet" />
+    <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/delivery-and-operations.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="UKHSA-OHID Technical Guidance - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/" />
+      <meta name="twitter:title" content="Image repositories - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/delivery-and-operations.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="UKHSA-OHID Technical Guidance" />
+      <meta property="og:title" content="Image repositories" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/delivery-and-operations.html" />
 
     
   </head>
@@ -48,8 +48,8 @@
       <nav class="govuk-header__navigation govuk-header__navigation--end" aria-label="Menu">
         <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu">Menu</button>
         <ul id="navigation" class="govuk-header__navigation-list">
-            <li class="govuk-header__navigation-item govuk-header__navigation-item--active">
-              <a class="govuk-header__link" href="./">Home</a>
+            <li class="govuk-header__navigation-item">
+              <a class="govuk-header__link" href="../../">Home</a>
             </li>
             <li class="govuk-header__navigation-item">
               <a class="govuk-header__link" href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub</a>
@@ -71,7 +71,7 @@
       <div class="app-pane__body" data-module="in-page-navigation">
           <div class="app-pane__toc">
             <div class="toc" data-module="table-of-contents" tabindex="-1" aria-label="Table of contents" role="dialog">
-              <div class="search" data-module="search" data-path-to-site-root="./">
+              <div class="search" data-module="search" data-path-to-site-root="../../">
   <form action="https://www.google.co.uk/search" method="get" role="search" class="search__form govuk-!-margin-bottom-4">
     <input type="hidden" name="as_sitesearch" value="https://ukhsa-collaboration.github.io/ohid-tech-docs"/>
     <label class="govuk-label search__label" for="search" aria-hidden="true">
@@ -91,28 +91,37 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#ukhsa-ohid-technical-guidance"><span>UKHSA-OHID Technical Guidance</span></a>
+    <a href="#image-repositories"><span>Image repositories</span></a>
     <ul>
       <li>
-        <a href="#who-is-this-documentation-for"><span>Who is this documentation for?</span></a>
+        <a href="#ecr"><span>ECR</span></a>
       </li>
       <li>
-        <a href="#getting-started"><span>Getting Started</span></a>
+        <a href="#terraform-state"><span>Terraform state</span></a>
       </li>
       <li>
-        <a href="#guides"><span>Guides</span></a>
+        <a href="#control-tower-logging"><span>Control Tower logging</span></a>
       </li>
       <li>
-        <a href="#architectural-decision-records"><span>Architectural Decision Records</span></a>
+        <a href="#dns"><span>DNS</span></a>
       </li>
       <li>
-        <a href="#services"><span>Services</span></a>
+        <a href="#secrets"><span>Secrets</span></a>
       </li>
       <li>
-        <a href="#aws-setup"><span>AWS Setup</span></a>
+        <a href="#tagging"><span>Tagging</span></a>
       </li>
       <li>
-        <a href="#other-documentation"><span>Other documentation</span></a>
+        <a href="#kms"><span>KMS</span></a>
+      </li>
+      <li>
+        <a href="#alerting-and-monitoring"><span>Alerting and monitoring</span></a>
+      </li>
+      <li>
+        <a href="#ecs-standards"><span>ECS standards</span></a>
+      </li>
+      <li>
+        <a href="#logging-and-log-retention"><span>Logging and log retention</span></a>
       </li>
     </ul>
   </li>
@@ -125,78 +134,46 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="ukhsa-ohid-technical-guidance">UKHSA-OHID Technical Guidance</h1>
-<h2 id="who-is-this-documentation-for">Who is this documentation for?</h2>
-<p>This is the technical documentation for the developers and DevOps engineers working on the UKHSA-supported OHID mobile applications and services.</p>
-<h2 id="getting-started">Getting Started</h2>
+            <h1 id="image-repositories">Image repositories</h1>
+<h2 id="ecr">ECR</h2>
+<p>New accounts use a single shared account for container images in ECR (<code>636728427214</code>). Repositories are typically named <code>&lt;service&gt;/&lt;app&gt;</code> (for example <code>active10/frontend</code>).</p>
+<p>Notes:
+- Image signing metadata is created and stored alongside images by the application pipeline, but ECS does not currently validate signatures.
+- Images are scanned using both Synk (as part of the application pipeline) and AWS Inspector (when pushed to ECR).</p>
+<p>Cross-account access is handled via ECR repository policies:</p>
 
 <ul>
-<li><a href="documentation/guides/get_started.html">Getting Started</a></li>
+<li>Workload accountsother than dev: read-only pull</li>
+<li>Dev workload account: write/push</li>
 </ul>
-<h2 id="guides">Guides</h2>
+<h2 id="terraform-state">Terraform state</h2>
+<p>State currently lives per-account: Terraform creates an S3 bucket for the backend. Optionally, a DynamoDB table is also created but this is no longer necessary with newer versions of Terraform.</p>
+<p>One potential improvement would be to centralise backend bucket creation via StackSets/CloudFormation.</p>
+<h2 id="control-tower-logging">Control Tower logging</h2>
+<p>CloudTrail and Config are enabled through Control Tower, so logs should already land in the centralised log archive account.</p>
+<h2 id="dns">DNS</h2>
+<p>DNS is not consistent today. It’s mostly delegated from <code>phe-prd</code>, but the subdomain patterns vary by service.</p>
+<p>Service-specific quirks are documented on each service page under <code>Services</code>.</p>
+<h2 id="secrets">Secrets</h2>
+<p>Most secrets are created as placeholders in Terraform, with values set manually afterwards. This gives us some infrastructure visibility, but it means our infrastructure is not fully reproducible.</p>
+<h2 id="tagging">Tagging</h2>
+<p>We use Terraform <code>default_tags</code> so resources get consistent tags automatically. In addition to standard UKHSA tags, we add tags pointing back to the relevant Terraform code repo to make it easier to find from where and why something was deployed.</p>
+<h2 id="kms">KMS</h2>
+<p>Default AWS-managed keys are used for most services. This keeps costs and operational overhead low, but it may not be sufficient for workloads with tighter compliance requirements.</p>
+<h2 id="alerting-and-monitoring">Alerting and monitoring</h2>
+<p>There&rsquo;s a standard set of alarms that are deployed to services. These alarms are defined in the <a href="https://github.com/ukhsa-collaboration/devops-terraform-standard-alarms">devops-terraform-standard-alarms</a> repo. The deployed alarms use a Lambda which is added automatically to each account via a StackSet. This Lambda forwards alarms to a Microsoft Teams channel. Refer to the <a href="https://github.com/ukhsa-collaboration/devops-phe-alarms-lambdas/">devops-phe-alarms-lambdas</a> repo for more detailed information on how this works.</p>
+<h2 id="ecs-standards">ECS standards</h2>
+<p>For ECS services, start with the smallest CPU/memory configuration that will run, then resize based on real traffic and telemetry. This keeps costs low and avoids over-provisioning.</p>
+<h2 id="logging-and-log-retention">Logging and log retention</h2>
+<p>Logging is inconsistent across services. Most apps output default framework logs; structured logging is rare which makes CloudWatch harder to use.</p>
 
-<ul>
-<li><a href="documentation/guides/troubleshooting-runbook.html">Troubleshooting common failures</a></li>
-<li><a href="documentation/guides/application-deployment-workflow.html">Application deployment workflow</a></li>
-<li><a href="documentation/guides/standard-pattern.html">Standard mobile app architecture pattern</a></li>
-<li><a href="documentation/guides/database-access.html">Accessing databases</a></li>
-<li><a href="documentation/guides/terraform-stacks.html">Terraform</a></li>
-<li><a href="documentation/guides/searching-logs.html">Searching application logs</a></li>
-<li><a href="documentation/guides/licensing.html">Licensing code</a></li>
-</ul>
-<h2 id="architectural-decision-records">Architectural Decision Records</h2>
-
-<ul>
-<li><a href="documentation/adrs/">ADRs</a></li>
-</ul>
-<h2 id="services">Services</h2>
-
-<ul>
-<li><a href="documentation/services/active10.html">Active 10</a></li>
-<li><a href="documentation/services/couch25k.html">Couch to 5K</a></li>
-<li><a href="documentation/services/wlp.html">Weight Loss Plan</a></li>
-<li><a href="documentation/services/fs.html">Food Scanner</a></li>
-<li><a href="documentation/services/sfd.html">Quit Smoking</a></li>
-<li><a href="documentation/services/talktofrank.html">Talk to Frank</a></li>
-<li><a href="documentation/services/dfd.html">Drink Free Days</a></li>
-<li><a href="documentation/services/aihc.html">AI Health Coach</a></li>
-<li><a href="documentation/services/ohiddataanalytics.html">OHID Data Analytics</a></li>
-</ul>
-<h2 id="aws-setup">AWS Setup</h2>
-
-<ul>
-<li><a href="documentation/aws/access.html">AWS Access</a></li>
-<li><a href="documentation/aws/account-structure.html">AWS Account Structure</a></li>
-<li><a href="documentation/aws/centralised-backups.html">AWS Centralised Backups</a></li>
-<li><a href="documentation/aws/networking.html">AWS Networking</a></li>
-<li><a href="documentation/aws/delivery-and-operations.html">Delivery and Operations</a></li>
-</ul>
-<h2 id="other-documentation">Other documentation</h2>
-
-<ul>
-<li><a href="https://ukhsa-collaboration.github.io/standards-org/">UKHSA Organisational Engineering Standards</a></li>
-</ul>
-
-              <div data-module='page-expiry' data-last-reviewed-on="2027-01-29">
-    <div class='page-expiry--not-expired'>
-      This page was last reviewed on 29 January 2026.
-
-        It needs to be reviewed again on 29 January 2027
-.
-    </div>
-
-    <div class='page-expiry--expired'>
-      This page was set to be reviewed before 29 January 2027.
-      This might mean the content is out of date.
-    </div>
-  </div>
-
+            
           </main>
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/index.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27UKHSA-OHID+Technical+Guidance%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2F%29&amp;labels=bug&amp;title=Re%3A+%27UKHSA-OHID+Technical+Guidance%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/aws/delivery-and-operations.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Image+repositories%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Faws%2Fdelivery-and-operations.html%29&amp;labels=bug&amp;title=Re%3A+%27Image+repositories%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>
@@ -243,6 +220,6 @@
     </div>
 
     
-    <script src="javascripts/application.js"></script>
+    <script src="../../javascripts/application.js"></script>
   </body>
 </html>
