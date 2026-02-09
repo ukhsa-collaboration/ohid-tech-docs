@@ -42,7 +42,11 @@ Ingress flow differs slightly by entry point:
 - `ALB` pattern: client traffic enters via the VPC Internet Gateway and is terminated at the ALB. The ALB then opens a new connection to the target in private subnets (for example ECS tasks). Response traffic returns to the ALB and then back to the client through the Internet Gateway.
 - `API Gateway` pattern: TLS is terminated by API Gateway at the edge/regional service layer. API Gateway then invokes the backend integration (for example Lambda)
 
-Standard expectations:
+### Architecture
+
+![Diagram of decentralised ingress](/images/aws-decentralised-ingress-diagram.png)
+
+### Standard expectations for ingress:
 
 - Keep application compute/data planes in private subnets.
 - Use ALB + AWS WAF as the default ingress pattern for public-facing services.
