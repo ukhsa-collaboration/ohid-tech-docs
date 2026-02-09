@@ -128,6 +128,11 @@
 </ul>
 <p>We should consider moving CIDR management to AWS IPAM should reduce manual coordination and the risk of overlap.</p>
 <h2 id="egress">Egress</h2>
+
+<blockquote>
+<p>[!IMPORTANT]<br>
+Not all accounts currently use the centralised egress setup. This is still WIP.</p>
+</blockquote>
 <p>Except for VPC endpoints, egress traffic originating from private subnets is routed over a Transit Gateway attachment and into the Networking account where it uses the Networking account&rsquo;s NAT gateways to reach the Internet.</p>
 <p>Where possible, use VPC endpoints for AWS services (for example S3) so traffic does not need to traverse NAT.</p>
 <p>Transit Gateway is not in the datapath for normal internet ingress and response traffic (See Ingress section below).</p>
