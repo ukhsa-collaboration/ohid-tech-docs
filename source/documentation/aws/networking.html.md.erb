@@ -8,7 +8,9 @@ nav_order: 3
 
 ## Account specific
 
-Account networking is created and managed by Terraform inside each workload account. The common result is one VPC per account with at least public and private subnets across multiple availability zones.
+Account networking is created and managed by Terraform inside each workload account. The common result is one VPC per account with at least public, intra and private subnets across multiple availability zones.
+
+Public subnets are used for ingress entry points (for example ALB) and NAT gateways. Private subnets are used for service compute resources. Intra subnets are used for VPC endpoints and Transit Gateway attachments.
 
 When creating a new account:
 
@@ -32,6 +34,11 @@ Transit Gateway is not in the datapath for normal internet ingress and response 
 ### Architecture
 
 ![Diagram of centralised egress](/images/aws-centralised-egress-diagram.png)
+
+### Adding new accounts to the centralised egress setup
+
+As each account is responsible for its own VPC, the process for adding new accounts to the centralised egress setup is not centralised. 
+Instructions for adding centralised egress to new accounts can be found in the [ohid-networks-iac](https://github.com/ukhsa-collaboration/ohid-networks-iac) repo.
 
 ## Ingress
 
