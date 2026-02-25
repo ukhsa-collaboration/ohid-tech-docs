@@ -15,30 +15,9 @@ For the 'Find a support centre' feature, Google's [Geocoding API](https://develo
 
 Analytics are captured using self-hosted [Matomo](https://matomo.org/) which runs in ECS containers.
 
----
-
 ## Architecture Overview
 
-```mermaid
-graph TD;
-    User[User Request]
-    CloudFront[CloudFront]
-    ALB[Application Load Balancer]
-    ECS[ECS Fargate Task]
-    Matomo[ECS Fargate Task]
-    OpenSearch[AWS OpenSearch]
-    Geocode[Google Geocode API]
-    Contentful[Contentful API]
-    MySQL[RDS DB]
-
-
-    User --> CloudFront --> ALB --> ECS --> OpenSearch
-    ECS --> Geocode
-    ECS --> Contentful
-    User --> Matomo
-    Matomo --> MySQL
-```
----
+![Talk to Frank architecture diagram](/images/talktofrank-architecture.png)
 
 ## Components
 
@@ -53,9 +32,9 @@ graph TD;
 - Terraform code defining AWS infrastructure for all environments.
 
 ### Matomo
-Self-hosted [Matomo](https://matomo.org/) is used for analytics. It runs in both staging and production. 
+Self-hosted [Matomo](https://matomo.org/) is used for analytics. It runs in both staging and production. The Matomo instance uses a MySQL RDS database and EFS storage for sharing application config data between the containers. 
 
----
+There is a scheduled ECS task that runs the Matomo archiver every hour.
 
 ## Environments
 
@@ -64,8 +43,6 @@ Self-hosted [Matomo](https://matomo.org/) is used for analytics. It runs in both
 | **Production** | https://www.talktofrank.com        | 
 | **Staging**     | https://staging.talktofrank.com   | 
 | **Preview**     | https://preview.talktofrank.com   |
-
----
 
 ## Email
 
