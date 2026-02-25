@@ -120,28 +120,8 @@
 <p>Active 10 is a mobile app that tracks how much a user walks each day and how many minutes are brisk.</p>
 <p>The app follows the <a href="../guides/standard-pattern.html">standard pattern</a>.</p>
 <h2 id="architecture-overview">Architecture Overview</h2>
-<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
-    User[User Request]
-    ALB[Application Load Balancer]
-    CMS[ECS Fargate Task - CMS]
-    Backend[ECS Fargate Task - Backend]
-    RDS[PostgreSQL RDS]
-    SNS[SNS Topic]
-    SQS[SQS Queue]
-    Lambda[Lambda Functions]
-    MediaCloudfront[Static assets Cloudfront]
-    Redis[Redis Cache]
-    MediaS3[S3 Media Bucket]
-    GlueBucket[S3 Glue Bucket]
-
-    User --&gt; ALB --&gt; CMS --&gt; RDS
-    User --&gt; ALB --&gt; Backend --&gt; RDS
-    User --&gt; MediaCloudfront --&gt; MediaS3
-    Backend --&gt; SNS --&gt; SQS --&gt; Lambda --&gt; RDS
-    Backend --&gt; SNS --&gt; SQS --&gt; Lambda --&gt; GlueBucket
-    Backend --&gt; RDS
-    Backend --&gt; Redis
-</code></pre></div><h2 id="components">Components</h2>
+<p><a href="../../images/active10-architecture.png" rel="noopener noreferrer"><img src="../../images/active10-architecture.png" alt="Active 10 architecture diagram" /></a></p>
+<h2 id="components">Components</h2>
 <h3 id="applications">Applications</h3>
 
 <ul>

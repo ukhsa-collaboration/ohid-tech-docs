@@ -128,28 +128,8 @@
 <p>The site integrates with AWS OpenSearch (formerly Elasticsearch) to power its drug search functionality. The frontend uses the headless CMS <a href="https://www.contentful.com/">Contentful</a> for its backend.</p>
 <p>For the &lsquo;Find a support centre&rsquo; feature, Google&rsquo;s <a href="https://developers.google.com/maps/documentation/geocoding/overview">Geocoding API</a> is used.</p>
 <p>Analytics are captured using self-hosted <a href="https://matomo.org/">Matomo</a> which runs in ECS containers.</p>
-
-<hr>
 <h2 id="architecture-overview">Architecture Overview</h2>
-<div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
-    User[User Request]
-    CloudFront[CloudFront]
-    ALB[Application Load Balancer]
-    ECS[ECS Fargate Task]
-    Matomo[ECS Fargate Task]
-    OpenSearch[AWS OpenSearch]
-    Geocode[Google Geocode API]
-    Contentful[Contentful API]
-    MySQL[RDS DB]
-
-
-    User --&gt; CloudFront --&gt; ALB --&gt; ECS --&gt; OpenSearch
-    ECS --&gt; Geocode
-    ECS --&gt; Contentful
-    User --&gt; Matomo
-    Matomo --&gt; MySQL
-</code></pre></div>
-<hr>
+<p><a href="../../images/talktofrank-architecture.png" rel="noopener noreferrer"><img src="../../images/talktofrank-architecture.png" alt="Talk to Frank architecture diagram" /></a></p>
 <h2 id="components">Components</h2>
 <h3 id="application">Application</h3>
 
@@ -164,9 +144,8 @@
 <li>Terraform code defining AWS infrastructure for all environments.</li>
 </ul>
 <h3 id="matomo">Matomo</h3>
-<p>Self-hosted <a href="https://matomo.org/">Matomo</a> is used for analytics. It runs in both staging and production.</p>
-
-<hr>
+<p>Self-hosted <a href="https://matomo.org/">Matomo</a> is used for analytics. It runs in both staging and production. The Matomo instance uses a MySQL RDS database and EFS storage for sharing application config data between the containers.</p>
+<p>There is a scheduled ECS task that runs the Matomo archiver every hour.</p>
 <h2 id="environments">Environments</h2>
 <div class="table-container">
         <table>
@@ -184,9 +163,7 @@
 <td>https://preview.talktofrank.com</td>
 </tr>
         </table>
-      </div>
-<hr>
-<h2 id="email">Email</h2>
+      </div><h2 id="email">Email</h2>
 <p>Emails to <code>frank@talktofrank.com</code> are received by Amazon SES. This puts the emails into an S3 bucket which then triggers a Lambda function. The Lambda function code is in the <a href="https://github.com/ukhsa-collaboration/talk-to-frank-iac/blob/main/applications/app/modules/ses/src/index.py">IaC repo</a> as it is temporary. This Lambda checks if SES has flagged the email as spam. If it is marked as spam then the Lambda moves the email from <code>{bucketname}/mailbox/frank@talktofrank.com</code> to <code>{bucketname}/processed/frank@talktofrank.com</code>.</p>
 <p>If the email isn&rsquo;t marked as spam, the email is forwarded onto some email addresses at DHSC. These email addresses are defined in the Lambda.</p>
 <p>In the future, this should be changed so that DHSC add talktofrank.com as a domain to their Microsoft Azure tenant. We would need to help by adding the correct MX records and verifying the domain for them but this would remove the Heath Robison-esque way of handling emails and allow the DHSC users to reply to emails, etc.</p>
