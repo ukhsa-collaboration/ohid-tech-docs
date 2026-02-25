@@ -1,0 +1,30 @@
+# ADR-002 Use Customer Managed Keys for RDS
+
+- Status: Accepted
+- Date: 2026-02-25
+- Deciders: OHID Platform Team
+
+## Context
+
+We current use AWS managed keys to encrypt our RDS databases. This means that AWS manages the encryption keys for us, and we do not have direct control over them. 
+
+Using AWS managed keys is a convenient option, but it may not meet our security requirements as we begin to handle more sensitive data.  
+
+By using customer managed keys (CMK), we can have more control over the encryption keys and ensure that they are properly secured. 
+
+Due to technical limitations of the AWS Backup service, the default AWS managed keys cannot be used to backup RDS clusters. By using customer managed keys, we can ensure that our RDS clusters can be backed up using AWS Backup, which is a critical part of our disaster recovery strategy.
+
+## Decision
+
+We will use customer managed keys (CMK) to encrypt our RDS databases. This will allow us to have more control over the encryption keys and ensure that they are properly secured. 
+
+## Alternatives Considered
+
+1. Continue using AWS managed keys: This option would be the easiest to implement, but it may not meet our security requirements as we begin to handle more sensitive data. Additionally, it would not allow us to use AWS Backup for our RDS clusters without additional workarounds.
+2. Use a third-party encryption solution: This option would give us more control over the encryption keys, but it would require additional setup and maintenance, and may not integrate well with our existing AWS infrastructure.
+3. Not encrypt our RDS databases: This option would be the least secure and is not recommended, as it could leave our data vulnerable to unauthorized access in the event of a security breach.
+
+## Consequences
+
+By using customer managed keys, we will have more control over the encryption keys and ensure that they are properly secured. However, this will require additional setup and maintenance, as we will need to manage the keys ourselves.
+Existing clusters will require downtime to switch to using customer managed keys, as the databases will need to be recreated with the new encryption keys.
