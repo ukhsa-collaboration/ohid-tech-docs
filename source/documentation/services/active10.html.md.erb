@@ -13,29 +13,8 @@ The app follows the [standard pattern](documentation/guides/standard-pattern).
 
 ## Architecture Overview
 
-```mermaid
-graph TD;
-    User[User Request]
-    ALB[Application Load Balancer]
-    CMS[ECS Fargate Task - CMS]
-    Backend[ECS Fargate Task - Backend]
-    RDS[PostgreSQL RDS]
-    SNS[SNS Topic]
-    SQS[SQS Queue]
-    Lambda[Lambda Functions]
-    MediaCloudfront[Static assets Cloudfront]
-    Redis[Redis Cache]
-    MediaS3[S3 Media Bucket]
-    GlueBucket[S3 Glue Bucket]
+![Active 10 architecture diagram](/images/active10-architecture.png)
 
-    User --> ALB --> CMS --> RDS
-    User --> ALB --> Backend --> RDS
-    User --> MediaCloudfront --> MediaS3
-    Backend --> SNS --> SQS --> Lambda --> RDS
-    Backend --> SNS --> SQS --> Lambda --> GlueBucket
-    Backend --> RDS
-    Backend --> Redis
-```
 
 ## Components
 
