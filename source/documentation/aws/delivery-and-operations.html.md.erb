@@ -29,12 +29,6 @@ One potential improvement would be to centralise backend bucket creation via Sta
 
 CloudTrail and Config are enabled through Control Tower, so logs should already land in the centralised log archive account. 
 
-## DNS
-
-DNS is not consistent today. It’s mostly delegated from `phe-prd`, but the subdomain patterns vary by service.
-
-Service-specific quirks are documented on each service page under `Services`.
-
 ## Secrets
 
 Most secrets are created as placeholders in Terraform, with values set manually afterwards. This gives us some infrastructure visibility, but it means our infrastructure is not fully reproducible.
