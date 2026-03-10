@@ -5,24 +5,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <title>Image repositories - OHID Technical Documentation</title>
+    <title>DNS - OHID Technical Documentation</title>
 
     <link href="../../stylesheets/manifest.css" rel="stylesheet" />
 
-    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/delivery-and-operations.html">
+    <link rel="canonical" href="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/dns.html">
 
       <meta name="robots" content="noindex" />
       <meta name="twitter:card" content="summary" />
       <meta name="twitter:domain" content="ukhsa-collaboration.github.io" />
       <meta name="twitter:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
-      <meta name="twitter:title" content="Image repositories - OHID Technical Documentation" />
-      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/delivery-and-operations.html" />
+      <meta name="twitter:title" content="DNS - OHID Technical Documentation" />
+      <meta name="twitter:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/dns.html" />
 
       <meta property="og:image" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/images/govuk-large.png" />
       <meta property="og:site_name" content="OHID Technical Documentation" />
-      <meta property="og:title" content="Image repositories" />
+      <meta property="og:title" content="DNS" />
       <meta property="og:type" content="object" />
-      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/delivery-and-operations.html" />
+      <meta property="og:url" content="https://ukhsa-collaboration.github.io/ohid-tech-docs/documentation/aws/dns.html" />
 
     
   </head>
@@ -91,34 +91,13 @@
               <nav id="toc" class="js-toc-list toc__list" aria-labelledby="toc-heading">
                       <ul>
   <li>
-    <a href="#image-repositories"><span>Image repositories</span></a>
+    <a href="#dns"><span>DNS</span></a>
     <ul>
       <li>
-        <a href="#ecr"><span>ECR</span></a>
+        <a href="#current-state"><span>Current state</span></a>
       </li>
       <li>
-        <a href="#terraform-state"><span>Terraform state</span></a>
-      </li>
-      <li>
-        <a href="#control-tower-logging"><span>Control Tower logging</span></a>
-      </li>
-      <li>
-        <a href="#secrets"><span>Secrets</span></a>
-      </li>
-      <li>
-        <a href="#tagging"><span>Tagging</span></a>
-      </li>
-      <li>
-        <a href="#kms"><span>KMS</span></a>
-      </li>
-      <li>
-        <a href="#alerting-and-monitoring"><span>Alerting and monitoring</span></a>
-      </li>
-      <li>
-        <a href="#ecs-standards"><span>ECS standards</span></a>
-      </li>
-      <li>
-        <a href="#logging-and-log-retention"><span>Logging and log retention</span></a>
+        <a href="#infrastructure-as-code"><span>Infrastructure as code</span></a>
       </li>
     </ul>
   </li>
@@ -131,43 +110,21 @@
 
         <div class="app-pane__content toc-open-disabled" aria-label="Content" tabindex="0">
           <main id="content" class="technical-documentation" data-module="anchored-headings">
-            <h1 id="image-repositories">Image repositories</h1>
-<h2 id="ecr">ECR</h2>
-<p>New accounts use a single shared account for container images in ECR (<code>636728427214</code>). Repositories are typically named <code>&lt;service&gt;/&lt;app&gt;</code> (for example <code>active10/frontend</code>).</p>
-<p>Notes:
-- Image signing metadata is created and stored alongside images by the application pipeline, but ECS does not currently validate signatures.
-- Images are scanned using both Synk (as part of the application pipeline) and AWS Inspector (when pushed to ECR).</p>
-<p>Cross-account access is handled via ECR repository policies:</p>
-
-<ul>
-<li>Workload accountsother than dev: read-only pull</li>
-<li>Dev workload account: write/push</li>
-</ul>
-<h2 id="terraform-state">Terraform state</h2>
-<p>State currently lives per-account: Terraform creates an S3 bucket for the backend. Optionally, a DynamoDB table is also created but this is no longer necessary with newer versions of Terraform.</p>
-<p>One potential improvement would be to centralise backend bucket creation via StackSets/CloudFormation.</p>
-<h2 id="control-tower-logging">Control Tower logging</h2>
-<p>CloudTrail and Config are enabled through Control Tower, so logs should already land in the centralised log archive account.</p>
-<h2 id="secrets">Secrets</h2>
-<p>Most secrets are created as placeholders in Terraform, with values set manually afterwards. This gives us some infrastructure visibility, but it means our infrastructure is not fully reproducible.</p>
-<h2 id="tagging">Tagging</h2>
-<p>We use Terraform <code>default_tags</code> so resources get consistent tags automatically. In addition to standard UKHSA tags, we add tags pointing back to the relevant Terraform code repo to make it easier to find from where and why something was deployed.</p>
-<h2 id="kms">KMS</h2>
-<p>Default AWS-managed keys are used for most services. This keeps costs and operational overhead low, but it may not be sufficient for workloads with tighter compliance requirements.</p>
-<h2 id="alerting-and-monitoring">Alerting and monitoring</h2>
-<p>There&rsquo;s a standard set of alarms that are deployed to services. These alarms are defined in the <a href="https://github.com/ukhsa-collaboration/devops-terraform-standard-alarms">devops-terraform-standard-alarms</a> repo. The deployed alarms use a Lambda which is added automatically to each account via a StackSet. This Lambda forwards alarms to a Microsoft Teams channel. Refer to the <a href="https://github.com/ukhsa-collaboration/devops-phe-alarms-lambdas/">devops-phe-alarms-lambdas</a> repo for more detailed information on how this works.</p>
-<h2 id="ecs-standards">ECS standards</h2>
-<p>For ECS services, start with the smallest CPU/memory configuration that will run, then resize based on real traffic and telemetry. This keeps costs low and avoids over-provisioning.</p>
-<h2 id="logging-and-log-retention">Logging and log retention</h2>
-<p>Logging is inconsistent across services. Most apps output default framework logs; structured logging is rare which makes CloudWatch harder to use.</p>
+            <h1 id="dns">DNS</h1>
+<p>DNS is managed centrally in Amazon Route 53.</p>
+<p>The central DNS account contains the public hosted zones for our primary domains, such as <code>phedigital.co.uk</code> and <code>betterhealthapps.com</code>. Subdomains are delegated to workload accounts where appropriate so teams can manage service-level DNS records without needing access to the central account.</p>
+<h2 id="current-state">Current state</h2>
+<p>This model has not been applied consistently across all existing services. In some cases, delegation differs between accounts or services for historical reasons. Where service-specific behaviour exists, it is documented on the relevant page under <code>Services</code>.</p>
+<h2 id="infrastructure-as-code">Infrastructure as code</h2>
+<p>DNS configuration is managed in the <a href="https://github.com/ukhsa-collaboration/ohid-dns-iac"><code>ohid-dns-iac</code> repository</a>.</p>
 
             
           </main>
 
           <aside>
               <ul class="contribution-banner">
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/aws/delivery-and-operations.html.md.erb">View source</a></li>
-                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27Image+repositories%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Faws%2Fdelivery-and-operations.html%29&amp;labels=bug&amp;title=Re%3A+%27Image+repositories%27">Report problem</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/blob/main/source/documentation/aws/dns.html.md.erb">View source</a></li>
+                <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs/issues/new?body=Problem+with+%27DNS%27+%28https%3A%2F%2Fukhsa-collaboration.github.io%2Fohid-tech-docs%2Fdocumentation%2Faws%2Fdns.html%29&amp;labels=bug&amp;title=Re%3A+%27DNS%27">Report problem</a></li>
                 <li><a href="https://github.com/ukhsa-collaboration/ohid-tech-docs">GitHub Repo</a></li>
               </ul>
           </aside>
