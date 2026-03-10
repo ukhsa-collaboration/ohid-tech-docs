@@ -1,0 +1,19 @@
+---
+title: DNS
+parent: OHID AWS Landing Zone
+nav_order: 6
+---
+
+# <%= current_page.data.title %>
+
+DNS is managed centrally in Amazon Route 53.
+
+The central DNS account contains the public hosted zones for our primary domains, such as `phedigital.co.uk` and `betterhealthapps.com`. Subdomains are delegated to workload accounts where appropriate so teams can manage service-level DNS records without needing access to the central account.
+
+## Current state
+
+This model has not been applied consistently across all existing services. In some cases, delegation differs between accounts or services for historical reasons. Where service-specific behaviour exists, it is documented on the relevant page under `Services`.
+
+## Infrastructure as code
+
+DNS configuration is managed in the [`ohid-dns-iac` repository](https://github.com/ukhsa-collaboration/ohid-dns-iac).
