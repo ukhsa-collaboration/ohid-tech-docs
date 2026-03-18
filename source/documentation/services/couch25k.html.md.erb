@@ -11,8 +11,6 @@ Couch to 5K is the Better Health running coach app.
 
 The app follows the [standard pattern](documentation/guides/standard-pattern) but also has a BuddyRun feature which runs in a separate ECS container and uses Redis. This uses WebSockets through the ALB instead of HTTP.
 
----
-
 ## Architecture Overview
 
 ```mermaid
@@ -34,8 +32,6 @@ graph TD;
     BuddyRun --> Redis
 ```
 
----
-
 ## Components
 
 ### Applications
@@ -47,8 +43,6 @@ graph TD;
 
 - **Repo:** [c25k-iac](https://github.com/ukhsa-collaboration/c25k-iac) – Terraform defining the AWS infrastructure.
 
----
-
 ## Environments
 
 | Environment | URL | 
@@ -56,8 +50,6 @@ graph TD;
 | **Production** | https://couchto5kprod.phedigital.co.uk | 
 | **Staging** | https://couchto5kstg.phedigital.co.uk | 
 | **Dev** | https://couchto5kdev.phedigital.co.uk | 
-
----
 
 ## DNS Overview
 
@@ -119,3 +111,34 @@ graph TD
 ```
 
 If any hosted zone is recreated, update the corresponding NS records in the phe-prd root so delegation stays valid.
+
+### Enabling Transcriptions
+The app uses AWS Transcribe to generate transcripts of the audio content. This is run in the Staging environment and the output is manually copied to the production S3 bucket. 
+To run the Transcription container in Staging, run the following commands from a terminal with AWS CLI access to the staging account:
+
+
+```bash
+SUBNET=$(aws ec2 describe-subnets \
+  --filters 'Name=tag:Type,Values=Private' \
+  --query 'Subnets[0].SubnetId' \
+  --output text)
+
+SECURITY_GROUP=$(aws ec2 describe-security-groups \
+  --query "SecurityGroups[?contains(GroupName, 'c25k-transcriber-service')].GroupId | [0]" \
+  --output text)
+
+TASK_DEFINITION=$(aws ecs list-task-definitions \
+  --family-prefix aw-c25k-euw2-uat-ecssvc-c25k-transcriber \
+  --sort DESC \
+  --query 'taskDefinitionArns[0]' \
+  --output text)
+
+aws ecs run-task \
+  --cluster aw-c25k-euw2-uat-ecscluster \
+  --task-definition "$TASK_DEFINITION" \
+  --launch-type FARGATE \
+  --network-configuration \
+    "awsvpcConfiguration={subnets=[$SUBNET],securityGroups=[$SECURITY_GROUP],assignPublicIp=DISABLED}"
+```
+
+Once the container is no longer needed, it should be stopped to avoid unnecessary costs. This can be done through the AWS Console.
