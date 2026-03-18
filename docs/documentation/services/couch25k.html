@@ -119,8 +119,6 @@
             <h1 id="couch-to-5k">Couch to 5K</h1>
 <p>Couch to 5K is the Better Health running coach app.</p>
 <p>The app follows the <a href="../guides/standard-pattern.html">standard pattern</a> but also has a BuddyRun feature which runs in a separate ECS container and uses Redis. This uses WebSockets through the ALB instead of HTTP.</p>
-
-<hr>
 <h2 id="architecture-overview">Architecture Overview</h2>
 <div class="highlight"><pre class="highlight plaintext" tabindex="0"><code>graph TD;
     User[Mobile App]
@@ -138,9 +136,7 @@
     CMS --&gt; Secrets
     User --&gt; ALB --&gt; BuddyRun
     BuddyRun --&gt; Redis
-</code></pre></div>
-<hr>
-<h2 id="components">Components</h2>
+</code></pre></div><h2 id="components">Components</h2>
 <h3 id="applications">Applications</h3>
 
 <ul>
@@ -152,8 +148,6 @@
 <ul>
 <li><strong>Repo:</strong> <a href="https://github.com/ukhsa-collaboration/c25k-iac">c25k-iac</a> – Terraform defining the AWS infrastructure.</li>
 </ul>
-
-<hr>
 <h2 id="environments">Environments</h2>
 <div class="table-container">
         <table>
@@ -171,9 +165,7 @@
 <td>https://couchto5kdev.phedigital.co.uk</td>
 </tr>
         </table>
-      </div>
-<hr>
-<h2 id="dns-overview">DNS Overview</h2>
+      </div><h2 id="dns-overview">DNS Overview</h2>
 <p>The <code>phedigital.co.uk</code> apex lives in the phe-prd account. That zone delegates <code>couchto5kprod.phedigital.co.uk</code>, <code>couchto5kstg.phedigital.co.uk</code> and <code>couchto5kdev.phedigital.co.uk</code> to the respective landing-zone accounts, where Terraform manages the ALB aliases and CDN records. Each environment also hosts a <code>cdn.phedigital&lt;env&gt;.co.uk</code> record that aliases the CloudFront distribution in us-east-1.</p>
 <p>The subdomains for Buddyrun are <code>couch25k.buddyrun.&lt;env&gt;.phedigital.co.uk</code>. This might imply that other applications also have a Buddyrun but they do not.</p>
 <p>Subdomains in use:</p>
@@ -227,6 +219,31 @@
   STG_CDN --&gt;|ALIAS| CF_STG
   PRD_CDN --&gt;|ALIAS| CF_PRD
 </code></pre></div><p>If any hosted zone is recreated, update the corresponding NS records in the phe-prd root so delegation stays valid.</p>
+<h3 id="enabling-transcriptions">Enabling Transcriptions</h3>
+<p>The app uses AWS Transcribe to generate transcripts of the audio content. This is run in the Staging environment and the output is manually copied to the production S3 bucket. 
+To run the Transcription container in Staging, run the following commands from a terminal with AWS CLI access to the staging account:</p>
+<div class="highlight"><pre class="highlight shell" tabindex="0"><code><span class="nv">SUBNET</span><span class="o">=</span><span class="si">$(</span>aws ec2 describe-subnets <span class="se">\</span>
+  <span class="nt">--filters</span> <span class="s1">'Name=tag:Type,Values=Private'</span> <span class="se">\</span>
+  <span class="nt">--query</span> <span class="s1">'Subnets[0].SubnetId'</span> <span class="se">\</span>
+  <span class="nt">--output</span> text<span class="si">)</span>
+
+<span class="nv">SECURITY_GROUP</span><span class="o">=</span><span class="si">$(</span>aws ec2 describe-security-groups <span class="se">\</span>
+  <span class="nt">--query</span> <span class="s2">"SecurityGroups[?contains(GroupName, 'c25k-transcriber-service')].GroupId | [0]"</span> <span class="se">\</span>
+  <span class="nt">--output</span> text<span class="si">)</span>
+
+<span class="nv">TASK_DEFINITION</span><span class="o">=</span><span class="si">$(</span>aws ecs list-task-definitions <span class="se">\</span>
+  <span class="nt">--family-prefix</span> aw-c25k-euw2-uat-ecssvc-c25k-transcriber <span class="se">\</span>
+  <span class="nt">--sort</span> DESC <span class="se">\</span>
+  <span class="nt">--query</span> <span class="s1">'taskDefinitionArns[0]'</span> <span class="se">\</span>
+  <span class="nt">--output</span> text<span class="si">)</span>
+
+aws ecs run-task <span class="se">\</span>
+  <span class="nt">--cluster</span> aw-c25k-euw2-uat-ecscluster <span class="se">\</span>
+  <span class="nt">--task-definition</span> <span class="s2">"</span><span class="nv">$TASK_DEFINITION</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">--launch-type</span> FARGATE <span class="se">\</span>
+  <span class="nt">--network-configuration</span> <span class="se">\</span>
+    <span class="s2">"awsvpcConfiguration={subnets=[</span><span class="nv">$SUBNET</span><span class="s2">],securityGroups=[</span><span class="nv">$SECURITY_GROUP</span><span class="s2">],assignPublicIp=DISABLED}"</span>
+</code></pre></div><p>Once the container is no longer needed, it should be stopped to avoid unnecessary costs. This can be done through the AWS Console.</p>
 
               <div data-module='page-expiry' data-last-reviewed-on="2026-07-16">
     <div class='page-expiry--not-expired'>
