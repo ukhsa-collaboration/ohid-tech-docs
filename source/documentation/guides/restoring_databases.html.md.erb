@@ -1,0 +1,158 @@
+# Runbook: Manual Restore of an Aurora Database Backup from the Central Backup Account
+
+## Overview
+
+This runbook describes how to manually restore an Aurora 
+database backup from the central AWS Backup account into a 
+target AWS account for validation, testing, or recovery purposes.
+
+## Step 1: Find the Recovery Point
+
+1. Sign in to the Central Backup Account.
+
+2. Navigate to:
+
+   ```
+   AWS Backup > Vaults
+   ```
+
+3. Open the central backup vault:
+
+   ```
+   aws-controltower-central-backupvault-<identifier>
+   ```
+
+4. Locate the required database recovery point. The relevant
+    recovery point should be identifiable by its resource name as it will include the database cluster identifier and the timestamp of the backup.
+
+---
+
+## Step 2: Copy the Recovery Point
+
+1. Select the recovery point.
+2. Click **Copy**.
+
+### Restore to the Source Account
+
+If restoring into the same account from which the backup originated (e.g. for a real recovery scenario):
+
+* Leave **Copy back to source account** selected.
+
+### Restore to a Different Account
+
+If performing a backup validation or recovery test in another account (e.g. for testing purposes or to restore into a different environment):
+
+* Select **Copy to different destination**.
+* Choose the destination vault. You will need to get the ARN of the destination vault from the destination account. The ARN will look like:
+
+  ```
+  arn:aws:backup:eu-west-2:<account id>:backup-vault:aws-controltower-local-backupvault-<identifier>
+  ```
+
+3. Start the copy operation.
+4. Wait for the copy job to complete successfully.
+
+---
+
+## Step 3: Switch to the Destination Account
+
+Sign in to the AWS account that received the copied recovery point.
+
+Navigate to:
+
+```
+AWS Backup > Vaults
+```
+
+Open the local backup vault containing the copied recovery point.
+
+---
+
+## Step 4: Restore the Database
+
+1. Select the copied recovery point.
+2. Click **Restore**.
+3. Choose **Restore to DB**.
+4. Complete the restore wizard using the required configuration.
+5. Start the restore job.
+
+Wait for the database cluster restore to complete.
+
+---
+
+## Step 5: Configure DB cluster
+
+Configure Serverless v2 scaling before creating a database instance.
+
+Run:
+
+```bash
+aws rds modify-db-cluster \
+    --db-cluster-identifier <restored-cluster-identifier> \
+    --serverless-v2-scaling-configuration MinCapacity=0.5,MaxCapacity=2 \
+    --apply-immediately
+```
+
+n.b. If restoring to a real account, the capacity range should be set to match the Terraform configuration. 
+
+## Step 6: Create a Database Instance
+
+After the Serverless v2 configuration has been applied, create a database instance within the restored cluster.
+
+```bash
+aws rds create-db-instance \
+    --db-instance-identifier <restored-db-instance-identifier> \
+    --db-cluster-identifier <restored-cluster-identifier> \
+    --engine aurora-postgresql \
+    --db-instance-class db.serverless
+```
+
+## Step 7: Validate the Restore
+
+Connect to the restored database using your preferred client. You may need to 
+refer to the [database access documentation](documentation/guides/database-access) for instructions on how to do this.
+
+Perform the relevant queries to validate the restore, 
+such as checking the database name, listing tables, and counting rows in 
+important tables.
+
+Example:
+
+```sql
+SELECT current_database();
+SELECT COUNT(*) FROM important_table;
+```
+
+---
+
+## Step 8: Cleanup (Optional)
+
+If this was a restore test then you'll need to delete the test database instance and cluster to avoid unnecessary costs.
+
+Example:
+
+```bash
+aws rds delete-db-instance \
+    --db-instance-identifier <restored-db-instance-identifier> \
+    --skip-final-snapshot
+```
+
+```bash
+aws rds delete-db-cluster \
+    --db-cluster-identifier <restored-cluster-identifier> \
+    --skip-final-snapshot
+```
+
+---
+
+## Success Criteria
+
+When carrying out a test, the restore should only be considered successful when all of the following 
+conditions are met:
+
+* The recovery point is copied successfully.
+* The database cluster restores successfully.
+* The database instance becomes available.
+* Connections to the database succeed.
+* Application data is present and validated.
+* Required functionality operates as expected.
