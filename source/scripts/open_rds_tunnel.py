@@ -68,6 +68,26 @@ def get_bastion_instance_id():
     raise RuntimeError("No running bastion instance found.")
 
 
+def select_from_list(items, item_type, identifier_fn):
+    """Prompt user to select from a list of items."""
+    print(f"\n[*] Multiple {item_type}s found. Please select one:\n")
+    for i, item in enumerate(items, 1):
+        print(f"  {i}. {identifier_fn(item)}")
+    
+    while True:
+        try:
+            choice = input(f"\nEnter number (1-{len(items)}) or (c)ancel: ").strip().lower()
+            if choice == 'c':
+                print("[*] Cancelled.")
+                sys.exit(0)
+            idx = int(choice) - 1
+            if 0 <= idx < len(items):
+                return items[idx]
+            print(f"Invalid selection. Please enter a number between 1 and {len(items)}, or 'c' to cancel.")
+        except ValueError:
+            print(f"Invalid input. Please enter a number between 1 and {len(items)}, or 'c' to cancel.")
+
+
 def get_target_database():
     rds = boto3.client("rds", region_name=REGION)
     if ENGINE == "postgres":
@@ -75,7 +95,12 @@ def get_target_database():
         aurora = [c for c in clusters if c.get("Engine") == "aurora-postgresql"]
         if aurora:
             if len(aurora) > 1:
-                raise RuntimeError("Multiple Aurora Postgres clusters found, refine selection.")
+                selected = select_from_list(
+                    aurora,
+                    "Aurora Postgres cluster",
+                    lambda c: c.get("DBClusterIdentifier", "Unknown")
+                )
+                return {"type": "cluster", "resource": selected}
             return {"type": "cluster", "resource": aurora[0]}
 
         instances = rds.describe_db_instances().get("DBInstances", [])
@@ -85,17 +110,27 @@ def get_target_database():
         if not postgres_instances:
             raise RuntimeError("No Aurora cluster or Postgres RDS instance found.")
         if len(postgres_instances) > 1:
-            raise RuntimeError("Multiple Postgres RDS instances found, refine selection.")
+            selected = select_from_list(
+                postgres_instances,
+                "Postgres RDS instance",
+                lambda i: i.get("DBInstanceIdentifier", "Unknown")
+            )
+            return {"type": "instance", "resource": selected}
         return {"type": "instance", "resource": postgres_instances[0]}
 
     instances = rds.describe_db_instances().get("DBInstances", [])
     mysql_instances = [
-        i for i in instances if i.get("Engine", "").lower().startswith("mysql") and i.get("DBInstanceIdentifier").lower() == "aw-ttf-euw2-prd-rds-matomo"
+        i for i in instances if i.get("Engine", "").lower().startswith("mysql")
     ]
     if not mysql_instances:
         raise RuntimeError("No MySQL RDS instance found.")
     if len(mysql_instances) > 1:
-        raise RuntimeError("Multiple MySQL RDS instances found, refine selection.")
+        selected = select_from_list(
+            mysql_instances,
+            "MySQL RDS instance",
+            lambda i: i.get("DBInstanceIdentifier", "Unknown")
+        )
+        return {"type": "instance", "resource": selected}
     return {"type": "instance", "resource": mysql_instances[0]}
 
 
