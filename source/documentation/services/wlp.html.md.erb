@@ -9,13 +9,16 @@ review_in: 24 weeks
 
 Weight Loss Plan helps make healthier food choices, set weight loss goals to helps users get more active and burn more calories.
 
-The app follows the [standard pattern](documentation/guides/standard-pattern). It uses a Static Assets S3 bucket to pull information using its "Calorie Search" function. The name of this bucket is hardcoded into the mobile app which makes replacing it more difficult.
+The app follows the [standard pattern](documentation/guides/standard-pattern) but extends it slightly by using an OpenSearch cluster for its food search functionality.
 
 ## Architecture Overview
 
-![Standard pattern architecture](/images/standard-pattern-architecture.png)
+![Weight Loss Plan architecture](/images/weight-loss-plan-architecture.jpg)
 
 ## Components
+
+### OpenSearch
+The OpenSearch cluster is populated from the `products.json` file from [Food Scanner](documentation/services/fs) which is a concatenation of multiple product data sources. A scheduled ECS task regularly downloads this file and updates the OpenSearch cluster to ensure the search results remain current.
 
 ### Applications
 
@@ -37,8 +40,7 @@ The app follows the [standard pattern](documentation/guides/standard-pattern). I
 
 ## DNS Overview
 
-Every environment manages two Route 53 hosted zones inside its AWS account: one for the CMS hostname (`weightloss-cms-<env>.phedigital.co.uk`) that ALIASes the environment’s ALB, and one for the CDN hostname (`cdn.<env>.weightloss.phedigital.co.uk`) that ALIASes the CloudFront distribution (issued out of us-east-1). The root `phedigital.co.uk` zone in the phe-prd account delegates both hostnames to the environment accounts.
-
+Every environment manages two Route 53 hosted zones inside its AWS account: one for the CMS hostname (`weightloss-cms-<env>.phedigital.co.uk`) that ALIASes the environment’s ALB, and one for the CDN hostname (`cdn.<env>.weightloss.phedigital.co.uk`) that ALIASes the CloudFront distribution (issued out of us-east-1).
 Subdomains:
 
 - weightloss-cms-prd.phedigital.co.uk / -stg / -dev – CMS and API entrypoints (ALB).
