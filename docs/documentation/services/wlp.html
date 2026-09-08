@@ -118,10 +118,12 @@
           <main id="content" class="technical-documentation" data-module="anchored-headings">
             <h1 id="weight-loss-plan">Weight Loss Plan</h1>
 <p>Weight Loss Plan helps make healthier food choices, set weight loss goals to helps users get more active and burn more calories.</p>
-<p>The app follows the <a href="../guides/standard-pattern.html">standard pattern</a>. It uses a Static Assets S3 bucket to pull information using its &ldquo;Calorie Search&rdquo; function. The name of this bucket is hardcoded into the mobile app which makes replacing it more difficult.</p>
+<p>The app follows the <a href="../guides/standard-pattern.html">standard pattern</a> but extends it slightly by using an OpenSearch cluster for its food search functionality.</p>
 <h2 id="architecture-overview">Architecture Overview</h2>
-<p><a href="../../images/standard-pattern-architecture.png" rel="noopener noreferrer"><img src="../../images/standard-pattern-architecture.png" alt="Standard pattern architecture" /></a></p>
+<p><a href="../../images/weight-loss-plan-architecture.jpg" rel="noopener noreferrer"><img src="../../images/weight-loss-plan-architecture.jpg" alt="Weight Loss Plan architecture" /></a></p>
 <h2 id="components">Components</h2>
+<h3 id="opensearch">OpenSearch</h3>
+<p>The OpenSearch cluster is populated from the <code>products.json</code> file from <a href="fs.html">Food Scanner</a> which is a concatenation of multiple product data sources. A scheduled ECS task regularly downloads this file and updates the OpenSearch cluster to ensure the search results remain current.</p>
 <h3 id="applications">Applications</h3>
 
 <ul>
@@ -156,8 +158,8 @@
       </div>
 <hr>
 <h2 id="dns-overview">DNS Overview</h2>
-<p>Every environment manages two Route 53 hosted zones inside its AWS account: one for the CMS hostname (<code>weightloss-cms-&lt;env&gt;.phedigital.co.uk</code>) that ALIASes the environment’s ALB, and one for the CDN hostname (<code>cdn.&lt;env&gt;.weightloss.phedigital.co.uk</code>) that ALIASes the CloudFront distribution (issued out of us-east-1). The root <code>phedigital.co.uk</code> zone in the phe-prd account delegates both hostnames to the environment accounts.</p>
-<p>Subdomains:</p>
+<p>Every environment manages two Route 53 hosted zones inside its AWS account: one for the CMS hostname (<code>weightloss-cms-&lt;env&gt;.phedigital.co.uk</code>) that ALIASes the environment’s ALB, and one for the CDN hostname (<code>cdn.&lt;env&gt;.weightloss.phedigital.co.uk</code>) that ALIASes the CloudFront distribution (issued out of us-east-1).
+Subdomains:</p>
 
 <ul>
 <li>weightloss-cms-prd.phedigital.co.uk / -stg / -dev – CMS and API entrypoints (ALB).</li>
