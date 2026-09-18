@@ -1,0 +1,109 @@
+---
+title: "Creating a new service"
+weight: 30
+last_reviewed_on: 2026-09-18
+review_in: 32 weeks
+---
+
+# <%= current_page.data.title %>
+This covers the repositories, accounts, bootstrap resources, networking, DNS and deployment pipelines needed before a service can be deployed.
+
+## Before you start
+
+Agree the service identifier, application repository names, environments, AWS region and required domains. Keep environment names consistent across the landing zone, Terraform variables, GitHub Environments and OIDC trust policies.
+
+You will need access to the repositories linked below, permission to create repositories in `ukhsa-collaboration`, and AWS access to bootstrap each workload account. Install the AWS CLI and the Terraform version required by the service configuration.
+
+The work spans several repositories:
+
+| Repository | Responsibility |
+| --- | --- |
+| [devops-github-repos](https://github.com/UKHSA-Internal/devops-github-repos) | Manage GitHub repository settings and permissions after importing existing repositories. |
+| [ohid-aws-landing-zone](https://github.com/ukhsa-collaboration/ohid-aws-landing-zone) | Create workload accounts, assign service access, and create application ECR repositories and registry IAM roles that the service's GitHub repositories can assume. |
+| The service's infrastructure repository | Bootstrap each workload account and manage its infrastructure, VPC and service DNS. |
+| [ohid-networks-iac](https://github.com/ukhsa-collaboration/ohid-networks-iac) | Connect workload VPCs to centralised egress and shared endpoints. |
+| [ohid-dns-iac](https://github.com/ukhsa-collaboration/ohid-dns-iac) | Manage records in the central DNS zones, including subdomain delegation. |
+
+## 1. Create and register the service repositories
+
+Create the repositories in the `ukhsa-collaboration` GitHub organisation. Typically, a service has a `<service>-iac` repository for Terraform and separate repositories such as `<service>-backend` for application code.
+
+Follow the [devops-github-repos README](https://github.com/UKHSA-Internal/devops-github-repos#readme) to add their configuration and import the existing repositories into Terraform state. This repository manages repositories; it does not create them. Run its Terraform locally as documented, and retain the state for subsequent runs. Use the directory for the correct GitHub organisation and check that the configured team exists there.
+
+Use [devops-terraform-example-project](https://github.com/ukhsa-collaboration/devops-terraform-example-project) as the starting point for the service infrastructure. Follow the [Terraform stacks guide](terraform-stacks.html) for stack layout, variable precedence and `dependencies.json` files used by CI to discover and order stacks.
+
+## 2. Create the AWS accounts
+
+Follow [Adding a service in the landing-zone README](https://github.com/ukhsa-collaboration/ohid-aws-landing-zone#adding-a-service). Add the service to `services/services.tf`, define its workload accounts in `environments`, and define any required ECR repositories in `applications`.
+
+The landing-zone repository also creates the ECR repositories and registry IAM roles for the configured applications, including registry permissions and trust policies allowing the service's GitHub repositories to assume those roles. Configure the service's GitHub repository names as part of this setup so its workflows can access ECR.
+
+Users assigned to the service must already exist in IAM Identity Center. If new users are needed, follow the README's separate PR process so they exist before the service configuration looks them up.
+
+Review and apply the landing-zone changes using that repository's process. Record the resulting account IDs, ECR repository paths and registry IAM role ARNs for the application workflows. The pipeline may need to run a second time to ensure all IAM roles and permissions are correctly propagated.
+
+## 3. Bootstrap each workload account
+
+The service's `core-services/bootstrap` stack creates the resources needed for remote Terraform state and GitHub Actions access. Apply it locally once per account before handing infrastructure deployment over to CI.
+
+### Adapt the example
+
+Review these files before applying the stack:
+
+- [oidc.tf](https://github.com/ukhsa-collaboration/devops-terraform-example-project/blob/main/core-services/bootstrap/oidc.tf): replace the example repository subjects with the service's repositories and matching GitHub environment or branch names. The example separates the Terraform role (`github-actions-oidc`) from the application deployment role (`github-actions-app-deployer-oidc`). Adapt the application role's permissions to the resources it will deploy.
+- [state-file.tf](https://github.com/ukhsa-collaboration/devops-terraform-example-project/blob/main/core-services/bootstrap/state-file.tf): check the state storage, encryption and permitted IAM principals, particularly if you change the Terraform role name.
+- Provider configuration and variable files: set the intended account, region, service and environment values.
+
+### Apply locally and migrate state
+
+Use a separate clean working copy for each account so local state and cached backend configuration cannot carry over between accounts. These steps are for a new account with no existing bootstrap state; for an already bootstrapped account, initialise its existing remote backend instead.
+
+1. Authenticate to the target account and confirm its account ID with `aws sts get-caller-identity`.
+2. From `core-services/bootstrap`, temporarily rename `backend.tf` to `backend.tf.bak`. Run `terraform init` to initialise with local state.
+3. Run `terraform plan -out=bootstrap.tfplan` with the service's variable files, review the plan, then run `terraform apply bootstrap.tfplan`. Supply variable files in the same order as CI: repository-wide `globals.tfvars`, stack-specific `tfvars/<environment>.tfvars`, then `environment/<environment>.tfvars` from the repository root. Include only files that exist, using paths relative to the bootstrap directory.
+4. Restore `backend.tf` but leave the local state file as it is. Initialise the S3 backend with `terraform init -migrate-state`, supplying the backend settings used by your pinned version of the [Terraform workflow](https://github.com/ukhsa-collaboration/devops-github-reusable-workflows/blob/main/.github/workflows/terraform-core.yml). Confirm the migration when prompted.
+5. Check that `terraform state list` contains the bootstrap resources and run another plan with the same variables. Resolve unexpected changes before enabling CI.
+
+The backend bucket, state key, region and locking settings must match CI exactly. In the shared workflow, the S3 bucket follows `<account-id>-<region>-state` and the key follows `<environment>/<state_name>/terraform.tfstate`; confirm the bootstrap stack's `state_name` in the workflow version you use. A different key makes CI see an empty state and attempt to recreate resources.
+
+Use [Terraform's state migration option](https://developer.hashicorp.com/terraform/cli/commands/init#backend-initialization) when moving the local state; `-reconfigure` does not migrate it. Do not commit local state, plan files or credentials to git. Restore `backend.tf` before committing the bootstrap configuration.
+
+## 4. Connect the service to central networking
+
+Manage the service VPC in its own infrastructure repository; do not use default VPCs. Follow the [AWS networking guide](../aws/networking.html) for CIDR planning, subnet layout, flow logs and ingress requirements.
+
+Follow the [spoke VPC integration guide](https://github.com/ukhsa-collaboration/ohid-networks-iac/blob/main/core-services/network/SPOKE_VPC_INTEGRATION.md) to connect each workload VPC to centralised egress. This needs changes on both sides:
+
+- Central networking shares the Transit Gateway with the workload account through AWS RAM.
+- The service accepts the share where required, creates its VPC attachment and routes private-subnet egress to the Transit Gateway.
+- Central networking configures the attachment's hub routing and return routes for the service CIDR. Provide the account, environment, VPC CIDR and attachment ID for this change.
+- Where shared private endpoints are used, central networking authorises the private hosted zone associations and the service creates those associations in its Terraform.
+
+Check that the attachment is available and test DNS resolution and egress from a workload in a private subnet. Internet egress should use the networking account's NAT addresses. Configure public ingress in the workload account as described in the networking guide.
+
+## 5. Configure DNS
+
+For a service subdomain under `phedigital.co.uk` or `betterhealthapps.com`, create its public hosted zone and service records in the workload account using the service's Terraform. Add NS delegation records in the parent zone through [ohid-dns-iac](https://github.com/ukhsa-collaboration/ohid-dns-iac), using the name servers assigned to the child hosted zone.
+
+Follow the [DNS guide](../aws/dns.html) for the ownership model. Confirm public resolution through the delegated zone and configure the certificates required by the service's ingress. This will be done through the service's Terraform.
+
+## 6. Configure and verify CI/CD
+
+Use [devops-github-reusable-workflows](https://github.com/ukhsa-collaboration/devops-github-reusable-workflows) for Terraform checks, plans and applies. For Python applications on ECS, start with the [application workflow quick start](https://github.com/ukhsa-collaboration/devops-application-cicd/blob/main/docs/container-image-build-python-aws-ecs.md#quick-start). Pin reusable workflows to a reviewed tag or commit (preferrably the latter), and use the inputs and secrets documented for that version.
+
+Configure GitHub Environments and their deployment approvals in line with the [application deployment workflow](application-deployment-workflow.html). Match their names to the OIDC subjects created during bootstrap, grant the calling workflows the permissions required for OIDC, and configure the account IDs and role names for each environment.
+
+For ECS applications, configure the workflow's central ECR access to use the registry IAM role created by the landing zone. Configure workload-account deployment access to use the application deployment role created during bootstrap. Match the registry namespace and application name to the ECR repositories created through the landing zone, and match the deployment configuration to the ECS resources created by the service's Terraform. Configure the image reference in Parameter Store consistently between application and infrastructure pipelines, as described in the application workflow documentation.
+
+Before promoting the service beyond development, verify that:
+
+- The Terraform workflow can assume its role, read the migrated bootstrap state and plan without trying to recreate bootstrap resources.
+- Infrastructure deployment creates the resources needed by the application workflow.
+- The application workflow can build and push an image, deploy it to the intended account, and pass the configured health checks.
+- Environment approvals, DNS resolution and the application's required outbound connections work as intended.
+
+For other runtimes or deployment targets, adapt or extend the shared workflows where practical and document any service-specific pipeline behaviour. Contribute reusable improvements back to the shared repositories.
+
+## 7. Document the service
+
+Add a service page to this documentation and link it from the service's repositories. Record the owners, repositories, account and environment mapping, domains, networking dependencies, deployment process, rollback procedure and operational runbooks. Include any departures from the shared patterns so the next engineer can understand how the service is operated.
