@@ -1,0 +1,39 @@
+---
+title: Better Health Auth
+parent: Services
+last_reviewed_on: 2026-09-18
+review_in: 24 weeks
+---
+
+# <%= current_page.data.title %>
+
+Better Health Auth is a service being developed to provide shared authentication for the Better Health mobile apps.
+
+## Development status
+
+The service is still in development. The architecture and authentication approach described below represent the planned integration and may change as implementation progresses.
+
+## Identity brokering
+
+Better Health Auth will use Keycloak as an identity broker with NHS login as the upstream identity provider. Mobile apps will integrate with Keycloak which will delegate user authentication to NHS login. Users will be created in the Keycloak database upon successful authentication.
+
+## Mobile app authentication
+
+Mobile apps will authenticate users through Keycloak using standard OAuth 2.0 and OpenID Connect (OIDC) flows implemented using standard libraries such as AppAuth. The mobile apps will use the authorization code flow with PKCE to obtain access, ID tokens and refresh tokens.
+
+At a high level, the planned sign-in flow is:
+
+1. The mobile app starts an authentication flow with Better Health Auth through Keycloak.
+2. Keycloak directs the user to NHS login to authenticate.
+3. NHS login returns the authentication result to Keycloak.
+4. Keycloak completes the OAuth 2.0/OIDC flow with the mobile app, allowing the app to establish an authenticated session.
+
+Further implementation details will be documented as the implementation is confirmed.
+
+## Architecture Overview
+
+![Better Health Auth architecture diagram](/images/bha-architecture.png)
+
+### High-level architecture
+
+Keycloak will run as containerised tasks on Amazon ECS using AWS Fargate across three availability zones to support high availability. Embedded Infinispan will provide distributed caching for authentication state and session data, allowing instances to access cached state across the cluster and reducing database access. In production mode, instances automatically discover and join the cluster using the configured discovery mechanism. With the default `jdbc-ping` stack, discovery uses the shared database, and instances require TCP connectivity on ports 7800 for cluster data and 57800 for failure detection. See the [Keycloak caching documentation](https://www.keycloak.org/server/caching) for details.
