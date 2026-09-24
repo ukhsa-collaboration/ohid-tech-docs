@@ -1,0 +1,38 @@
+---
+title: Health Coach
+parent: Services
+last_reviewed_on: 2026-09-24
+review_in: 8 weeks
+---
+
+# <%= current_page.data.title %>
+
+Health Coach currently provides a basic dashboard. There are plans to expand the service, but personalised health coaching and LLM-driven recommendations are not part of its current functionality.
+
+The service follows the earlier exploratory project [AI Health Coach](/documentation/services/aihc).
+
+## Architecture Overview
+
+The dashboard has a frontend and a backend deployed on ECS Fargate, backed by a PostgreSQL database hosted on Amazon RDS.
+
+The frontend configuration supplies the API URL. The user's browser sends requests directly to the backend, which handles application logic and database access.
+
+![Health Coach architecture diagram](/images/healthcoach-architecture.png)
+
+## Components
+
+### Applications
+
+- [healthcoach-platform-frontend](https://github.com/ukhsa-collaboration/healthcoach-platform-frontend): dashboard frontend.
+- [healthcoach-platform-backend](https://github.com/ukhsa-collaboration/healthcoach-platform-backend): backend API.
+
+### Infrastructure as Code (IaC)
+
+- [healthcoach-platform-iac](https://github.com/ukhsa-collaboration/healthcoach-platform-iac): Terraform configuration for the service's AWS infrastructure.
+
+## Environments
+
+| Environment | URL | Purpose |
+|-------------|-----|---------|
+| Dev | https://dev.healthcoach.betterhealthapps.com/ | Development dashboard |
+| Dev API | https://api.dev.healthcoach.betterhealthapps.com/ | Development API |
