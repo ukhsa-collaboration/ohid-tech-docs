@@ -1,43 +1,142 @@
 ---
 title: Application deployment workflow
 parent: Guides
-last_reviewed_on: 2026-01-29
+last_reviewed_on: 2026-09-14
 review_in: 24 weeks
 ---
 
 # <%= current_page.data.title %>
 
-All applications follow [Github Flow-based workflow](https://docs.github.com/en/get-started/using-github/github-flow) and are built and deployed using GitHub Actions. The standard workflow is as follows:
+## Migration Status
+
+> ⚠️ Not all repositories in the platform currently use the `devops-application-cicd` reusable workflows. Existing repositories should be migrated.
+> Manual deployment approvals (for Staging and Production environments) require GitHub Environments approval gates, which only work in public repositories for free Github organisations.
+
+All applications follow [Github Flow-based workflow](https://docs.github.com/en/get-started/using-github/github-flow) and are built and deployed using GitHub Actions with reusable workflows from the [`ukhsa-collaboration/devops-application-cicd`](https://github.com/ukhsa-collaboration/devops-application-cicd) repository.
+We don't build separate images for each environment: artifacts are built once as Docker container images and then promoted through the environments. Environment-specific configuration is externalised using environment variables.
+
+The standard development and deployment workflow is as follows:
 
 1. Make your feature branch off of main
 2. Make your changes and include new tests for any new code.
 3. Raise a PR to main. Ensure the container builds and tests pass.
 4. Have a team member review your changes.
 5. Once they have approved your changes, it can be merged into main.
-6. It will automatically deploy to the development environment after being merged into main.
-7. Staging requires manual approval (see below); you may normally approve this yourself unless your team has different rules.
-8. Production deployments require approval from someone with permission (usually a member of your team). Once approved, it will deploy to production.
+6. On merge to main:
+   - The CI/CD pipeline builds a Docker container image
+   - Unit tests and linting checks run
+   - The image is pushed to the centralised ECR repository with a release tag
+   - Deployments proceed through configured environments
+7. Development environment deploys automatically after being merged into main.
+8. Staging and Production deployments require manual approval through GitHub Environments (see below).
 
-When a change is merged into `main`, a git tag is created. The container image is tagged with the same value and pushed to a centralised ECR repository.
+## Build and Deployment Pipeline
 
-## Environments and approvals
+The deployment system uses a container-based architecture:
 
-Most repositories use GitHub Environments to gate deployments:
+- Build Stage: Dockerfile and application code are linted. Container is built and unit tests run locally on the Github Runner
+- Registry Stage: On main branch, the image is pushed to the centralised ECR repository with an immutable digest reference
+- Deployment Stage: The image is deployed to AWS ECS services in each configured environment
+- Verification Stage: Lightweight smoke tests (HTTP health checks) and optional comprehensive post-deploy tests run against the deployed environment
 
-- Development: automatic on merge to main.
-- Staging: manual approval required.
-- Production: manual approval required, usually by a different person.
+If smoke tests or post-deploy tests fail, the deployment is automatically rolled back by ECS and the image is not promoted to downstream environments.
+
+## Environments and Approvals
+
+Applications typically deploy to multiple environments with different approval requirements:
+
+- Development: Automatic deployment on merge to main.
+- Staging: Manual approval required but can be approved by the person who merged the change
+- Production: Manual approval required but reviewer must be someone other than the person who merged the change
+
+GitHub Environments enforce these approvals at the workflow job level.
 
 ## How to reach the approvals screen in GitHub Actions
 
 1. Open the repository in GitHub.
-2. Go to the Actions tab.
+2. Go to the **Actions** tab.
 3. Select the deployment workflow run (usually the latest run on `main`).
-4. In the workflow run page, find the job waiting on an environment.
-5. Click Review deployments (or Approve and deploy) to open the approvals dialog.
+4. In the workflow run page, find the job waiting on an environment (named `deploy` or similar).
+5. Click **Review deployments** (or **Approve and deploy**) to open the approvals dialog.
+6. Optionally add a comment explaining your approval.
+7. Click **Approve and deploy**.
+
+The job will proceed after approval and update the ECS service with the new container image.
+
+## Reusable Workflows and Configuration
+
+Applications use the container image build and deploy workflow from `devops-application-cicd`. The workflow:
+
+- Requires a `Dockerfile` and Python dependencies (`pyproject.toml` or `requirements.txt`)
+- Accepts configuration for test commands, deployment environments, smoke test URLs, and post-deploy test suites
+- Deploys to AWS ECS using immutable image digests (not mutable tags)
+- Stores the image digest in AWS Systems Manager Parameter Store for infrastructure-as-code reference
+
+See the [`devops-application-cicd` documentation](https://github.com/ukhsa-collaboration/devops-application-cicd/blob/main/docs/container-image-build-python-aws-ecs.md) for workflow inputs, deployment environment schema, and example configurations.
+
+## IAM Roles and OIDC Authentication
+
+The CI/CD pipeline uses AWS IAM roles with OpenID Connect (OIDC) trust relationships to authenticate from GitHub Actions without storing long-lived AWS credentials. Two types of roles are required:
+
+### ECR Registry Role (Per Repository)
+
+A single IAM role per repository is used to push container images to the centralised ECR registry:
+
+- **Account:** The central AWS registry account
+- **Permissions:** Push images to ECR, tag images
+- **Trust relationship:** Configured to allow assumption from your application code GitHub repository using OIDC
+- **Setup responsibility:** Automatically configured by the `ohid-aws-landing-zone` infrastructure. No manual configuration required for individual repositories.
+- **Workflow configuration:** The workflow automatically discovers this role using `registry_account_id` + `aws_registry_role_name` or you can explicitly provide the role ARN via `aws_registry_role_to_assume`
+
+### Deployment Roles (Per Service, Per Environment)
+
+A separate IAM role per service and environment is used to deploy to AWS ECS:
+
+- **Account:** The workload AWS account for each environment (Dev, Staging, Prod)
+- **Permissions:** Update ECS task definitions, update ECS services, write to SSM Parameter Store, pull images from central ECR
+- **Trust relationship:** Must allow assumption from your application code GitHub repositories using OIDC
+- **Setup responsibility:** Each service's Terraform code is responsible for creating this role in the workload accounts.
+- **Workflow configuration:** Provide each environment's `aws_account_id` and `aws_deploy_role_name`, or provide the full role ARN via `aws_role_to_assume`. The latter is the preferred approach but requires use of environment-specific secrets.
+
+### OIDC Trust Relationship Setup
+
+The deployment role must have an OIDC trust relationship configured to allow GitHub Actions to assume it. The trust policy must specify:
+
+- **Token issuer:** `https://token.actions.githubusercontent.com`
+- **Repository filter:** Scoped to the specific GitHub repository and the GitHub Environment that will use it. For example:
+  - Dev deployments: Use GitHub Environment `dev`,
+  - Production deployments: Use GitHub Environment `prd`, scope the ref to your release tag pattern
+- **Audience:** `sts.amazonaws.com`
+
+The ECR registry role's OIDC trust is automatically configured by the `ohid-aws-landing-zone` infrastructure and does not require manual setup.
+
+Example trust policy for deployment role (environment-specific):
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<account>:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:ukhsa-collaboration/<repo-name>:environment:<ENVIRONMENT_NAME>:ref:<ENVIRONMENT_REF>"
+        }
+      }
+    }
+  ]
+}
+```
+
+**Note:** OIDC identity providers must be configured in AWS for the GitHub token issuer before roles can be created. This is typically a one-time setup per AWS account and is done during the Terraform bootstrap process.
 
 ## Architecture
-
 The below diagram demonstrates the sequence of events needed to deploy a feature, hotfix or bugfix to production. The development begins in the top left corner.
 
 ![Diagram of sequence of events for deploying to production using Github Flow](/images/github-flow-deployment-diagram.png)
@@ -45,15 +144,40 @@ The below diagram demonstrates the sequence of events needed to deploy a feature
 
 ## Troubleshooting
 
-- If you do not see Review deployments, you likely do not have permission for that environment.
-- If the workflow has failed earlier, fix the failure and re-run the workflow before requesting approval.
-- If your change adds or modifies environment variables, update Infrastructure as Code first so task definitions include the new variables before application changes deploy.
+- **"Review deployments" button missing:** You likely do not have permission for that environment. You might need to raise a ServiceNow request to be added to the correct Github teams.
+- **Workflow failed before reaching approval:** Fix the failure (build error, test failure, linting issue) and re-run the workflow from the Actions tab before requesting approval.
+- **Environment variables missing in deployed application:** Update Infrastructure as Code (Terraform task definition) first. The ECS task definition must include environment variables before the application is deployed; otherwise the deployment will fail.
+- **Smoke tests or post-deploy tests failing:** Review the test output in the workflow logs. Common causes include network connectivity issues, incorrect base URLs, or application health issues. Fix the application or test configuration and re-run.
+- **Deployment rolled back:** Smoke tests or post-deploy tests failed, triggering an automatic rollback. Check the workflow logs for the exact failure. The image digest is not written to Parameter Store, preventing downstream promotions.
+- **Build or push to ECR failing:** Verify that:
+  - The `Dockerfile` exists and builds successfully locally.
+  - The ECR registry role is available (automatically configured by `ohid-aws-landing-zone`).
+  - GitHub workflow has the correct `registry_account_id` and `aws_registry_role_name` configured.
+  - If OIDC trust is misconfigured, the `sts:AssumeRoleWithWebIdentity` call will fail with an access denied error.
 
 ## Rollbacks
 
-Rollback is performed by reverting the PR and merging the revert into `main`. The pipeline will deploy the reverted state and create a new release tag automatically.
+To rollback a deployment:
 
-If database migrations are involved, rollback may require manual steps. Ensure migrations are reversible before deploying, and be prepared to handle migration rollback separately.
+1. **Create a revert PR:** On GitHub, open the original PR and click **Revert** to generate a revert commit.
+2. **Merge the revert:** Review and merge the revert PR into `main`.
+3. **Pipeline deploys automatically:** The CI/CD pipeline will build, test, and deploy the reverted state to each environment in sequence.
+4. **New release tag is created:** A new version tag is automatically assigned to the reverted commit.
+
+**Important:** If database migrations are involved, rollback requires additional manual steps:
+
+- Ensure all migrations are reversible (down/rollback support in your migration framework).
+- After merging the revert, verify the migration rollback completes successfully before the application deployment.
+- Be prepared to handle migration rollback separately if the automated pipeline does not support it (e.g., if using manual SQL scripts).
+
+## Image Versioning and Promotion
+
+- Each commit to `main` generates a unique, immutable image digest (`sha256:...`).
+- On merge to main, the image is tagged with the git ref (e.g., `main`, `v1.2.3`) and pushed to ECR.
+- The immutable digest reference (not the mutable tag) is used for all deployments.
+- After successful deployment and testing in an environment, the image digest is written to AWS Systems Manager Parameter Store.
+- Infrastructure-as-code (Terraform) reads the Parameter Store value to determine which image version to deploy.
+- This pattern decouples application and infrastructure pipelines, preventing configuration conflicts between Terraform state and application deployments.
 
 ## Repo Independence
 
